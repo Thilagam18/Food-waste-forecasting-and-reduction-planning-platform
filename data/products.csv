@@ -1,0 +1,19 @@
+sku_id,product_name,category,unit_cost,retail_price,lead_time_days,min_safety_stock
+SKU-1001,Noise-Canceling Headphones,Electronics,80.0,199.99,10,30
+SKU-1002,Ergonomic Mechanical Keyboard,Electronics,45.0,119.99,7,25
+SKU-1003,Smart Fitness Watch,Electronics,60.0,149.99,14,40
+SKU-1004,Portable Bluetooth Speaker,Electronics,25.0,69.99,5,20
+SKU-1005,USB-C Fast Charger,Electronics,8.0,24.99,4,50
+SKU-2001,Premium Cotton T-Shirt,Apparel,6.5,29.99,12,100
+SKU-2002,Slim Fit Denim Jeans,Apparel,18.0,69.99,15,60
+SKU-2003,Lightweight Running Shoes,Apparel,35.0,109.99,14,45
+SKU-2004,Waterproof Outdoor Jacket,Apparel,45.0,139.99,18,30
+SKU-3001,Organic Arabica Coffee Beans (1lb),Grocery,5.5,15.99,3,80
+SKU-3002,Artisanal Dark Chocolate Bar,Grocery,1.8,5.99,4,100
+SKU-3003,Plant-Based Protein Powder (2lb),Grocery,16.0,39.99,7,40
+SKU-4001,Stainless Steel Water Bottle,Home & Living,7.0,24.99,8,50
+SKU-4002,Adjustable LED Desk Lamp,Home & Living,14.0,44.99,9,30
+SKU-4003,Aromatherapy Essential Oil Diffuser,Home & Living,11.0,34.99,6,25
+SKU-4004,Legacy Seasonal Decorative Vase,Home & Living,22.0,79.99,20,15
+SKU-5001,Non-Slip Yoga Mat (6mm),Sports & Fitness,10.0,32.99,7,35
+SKU-5002,Adjustable Dumbbell Set,Sports & Fitness,75.0,199.99,14,15

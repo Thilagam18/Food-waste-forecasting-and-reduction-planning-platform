@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.Python
+
+# Virtual environment contents
+Include/
+Lib/
+Scripts/
+share/
+pyvenv.cfg
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+node_modules/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database
+*.db
+*.sqlite3
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+
+# Temporary
+*.log
