@@ -1,16 +1,24 @@
-'use client';
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '@/types';
-import api from '@/services/api';
+import { authService } from '../services/api';
+
+export interface User {
+  id: number;
+  organization_id: number;
+  organization_name: string;
+  organization_type: string;
+  full_name: string;
+  email: string;
+  role: string;
+}
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<User>;
-  register: (data: any) => Promise<User>;
+  isAuthenticated: boolean;
+  loading: boolean;
+  login: (token: string, user: User) => void;
   logout: () => void;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,56 +26,55 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('medisync_token');
-    const savedUser = localStorage.getItem('medisync_user');
+    const savedToken = localStorage.getItem('fw_access_token');
+    const savedUser = localStorage.getItem('fw_user_data');
+
     if (savedToken && savedUser) {
-      setToken(savedToken);
       try {
+        setToken(savedToken);
         setUser(JSON.parse(savedUser));
       } catch (e) {
-        localStorage.removeItem('medisync_user');
+        localStorage.removeItem('fw_access_token');
+        localStorage.removeItem('fw_user_data');
       }
     }
-    setIsLoading(false);
+    setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<User> => {
-    const res: any = await api.post('/auth/login', { email, password });
-    if (res.success && res.access_token && res.user) {
-      setToken(res.access_token);
-      setUser(res.user);
-      localStorage.setItem('medisync_token', res.access_token);
-      localStorage.setItem('medisync_user', JSON.stringify(res.user));
-      return res.user;
-    }
-    throw new Error(res.message || 'Login failed');
-  };
-
-  const register = async (userData: any): Promise<User> => {
-    const res: any = await api.post('/auth/register', userData);
-    if (res.success && res.access_token && res.user) {
-      setToken(res.access_token);
-      setUser(res.user);
-      localStorage.setItem('medisync_token', res.access_token);
-      localStorage.setItem('medisync_user', JSON.stringify(res.user));
-      return res.user;
-    }
-    throw new Error(res.message || 'Registration failed');
+  const login = (newToken: string, newUser: User) => {
+    localStorage.setItem('fw_access_token', newToken);
+    localStorage.setItem('fw_user_data', JSON.stringify(newUser));
+    setToken(newToken);
+    setUser(newUser);
   };
 
   const logout = () => {
+    localStorage.removeItem('fw_access_token');
+    localStorage.removeItem('fw_user_data');
     setToken(null);
     setUser(null);
-    localStorage.removeItem('medisync_token');
-    localStorage.removeItem('medisync_user');
-    window.location.href = '/login';
+  };
+
+  const updateUser = (updated: User) => {
+    localStorage.setItem('fw_user_data', JSON.stringify(updated));
+    setUser(updated);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        isAuthenticated: !!token && !!user,
+        loading,
+        login,
+        logout,
+        updateUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
