@@ -1,12 +1,11 @@
-import sys
 import os
+import sys
 import pytest
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from backend.app import create_app
 from backend.extensions import db
-from database.seed import seed_database
 
 @pytest.fixture
 def app():
@@ -14,11 +13,11 @@ def app():
     app.config.update({
         "TESTING": True,
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-        "JWT_SECRET_KEY": "medisync-jwt-super-secret-key-2026-production-ready-32bytes"
+        "JWT_SECRET_KEY": "test-jwt-secret-key-food-waste-platform-2026"
     })
 
     with app.app_context():
-        seed_database()
+        db.create_all()
         yield app
         db.session.remove()
         db.drop_all()

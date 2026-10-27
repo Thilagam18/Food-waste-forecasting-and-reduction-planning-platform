@@ -1,3 +1,3 @@
-from backend.utils.auth import role_required
+from backend.utils.auth import org_required
 
-__all__ = ['role_required']
+__all__ = ['org_required']
