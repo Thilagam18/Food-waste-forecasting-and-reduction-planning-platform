@@ -1,45 +1,47 @@
 # Python
 __pycache__/
 *.py[cod]
-*.class
+*$py.class
 *.so
 .Python
-
-# Virtual environment contents
-Include/
-Lib/
-Scripts/
-share/
-pyvenv.cfg
-
-# Next.js
-frontend/.next/
-frontend/out/
-frontend/node_modules/
-node_modules/
-
-# Environment Variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Database
-*.db
-*.sqlite3
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Testing
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 .pytest_cache/
 
-# Temporary
-*.log
+# Local databases & env secrets
+*.db
+*.sqlite
+*.sqlite3
+.env
+.env.local
 
-# Frontend build output
+# Node / Frontend
+frontend/node_modules/
 frontend/dist/
+frontend/.next/
+frontend/out/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Root Python virtual environment
+/Scripts/
+/share/
+/pyvenv.cfg

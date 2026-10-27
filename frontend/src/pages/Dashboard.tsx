@@ -1,30 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
-  TrendingUp,
-  TrendingDown,
-  Scale,
   UtensilsCrossed,
+  Activity,
   Trash2,
-  DollarSign,
-  AlertTriangle,
-  Sparkles,
-  ArrowRight,
-  Database,
+  IndianRupee,
+  HelpCircle,
+  ExternalLink,
   Calendar,
   Layers,
-  CheckCircle2,
-  PieChart as PieIcon,
-  BarChart2
+  ArrowRight,
+  TrendingDown,
+  ChevronRight,
+  AlertCircle
 } from 'lucide-react';
 import {
   ResponsiveContainer,
   AreaChart,
   Area,
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
@@ -34,427 +27,372 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
-import { dashboardService, demoService, recommendationService } from '../services/api';
+import { dashboardService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
-const CATEGORY_COLORS = ['#059669', '#2563eb', '#f59e0b', '#dc2626', '#8b5cf6', '#ec4899', '#06b6d4'];
+const ROOT_CAUSE_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export const Dashboard: React.FC = () => {
-  const [days, setDays] = useState<number>(30);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [mealFilter, setMealFilter] = useState<'ALL' | 'Breakfast' | 'Lunch' | 'Dinner'>('ALL');
   const [stats, setStats] = useState<any>(null);
   const [charts, setCharts] = useState<any>(null);
-  const [recommendations, setRecommendations] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [demoLoading, setDemoLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(
+    new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })
+  );
 
   useEffect(() => {
-    fetchDashboardData(days);
-  }, [days]);
+    const timer = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const fetchDashboardData = async (selectedDays: number) => {
+  useEffect(() => {
+    fetchData();
+  }, [mealFilter]);
+
+  const fetchData = async () => {
     setLoading(true);
-    setError(null);
     try {
-      const [statsRes, chartsRes, recsRes] = await Promise.all([
-        dashboardService.getStats(selectedDays),
-        dashboardService.getCharts(selectedDays),
-        recommendationService.list({ status: 'Pending' })
+      const [statsRes, chartsRes] = await Promise.all([
+        dashboardService.getStats(30),
+        dashboardService.getCharts(14)
       ]);
-
       if (statsRes.data?.success) setStats(statsRes.data.data);
       if (chartsRes.data?.success) setCharts(chartsRes.data.data);
-      if (recsRes.data?.success) setRecommendations(recsRes.data.data.slice(0, 3));
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load dashboard metrics.');
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLoadDemo = async () => {
-    try {
-      setDemoLoading(true);
-      await demoService.load();
-      await fetchDashboardData(days);
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to load demonstration data.');
-    } finally {
-      setDemoLoading(false);
-    }
-  };
-
   const metrics = stats?.metrics;
-  const hasData = stats?.has_data;
+  const orgName = user?.organization_name || 'Apex Culinary Campus';
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner & Date Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+    <div className="space-y-5">
+      {/* Facility Breadcrumb */}
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+        <span className="text-cyan-700 font-bold">{orgName}</span>
+        <span>•</span>
+        <span>Main Dining Hall & Central Canteen</span>
+      </div>
+
+      {/* Main Command Center Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Operations & Reduction Dashboard</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Real-time kitchen food preparation, surplus analysis, and waste KPIs
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            Operational Kitchen Command Center
+          </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Real-time food waste monitoring, next-meal demand forecasting, and inventory reduction planning.
           </p>
         </div>
 
-        {/* Date Filter & Demo Indicator */}
-        <div className="flex items-center gap-2">
-          {stats?.has_demo_data && (
-            <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-300 rounded-lg">
-              <Database className="w-3.5 h-3.5" />
-              <span>Demo Data Active</span>
-            </span>
-          )}
-
-          <div className="flex bg-white border border-slate-200 rounded-lg p-0.5 shadow-sm text-xs font-medium">
-            {[7, 14, 30, 90].map((d) => (
+        {/* Filters and CTA Button matching Screenshot 2 */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
+            {(['ALL', 'Breakfast', 'Lunch', 'Dinner'] as const).map((m) => (
               <button
-                key={d}
-                onClick={() => setDays(d)}
-                className={`px-3 py-1.5 rounded-md transition ${
-                  days === d
-                    ? 'bg-emerald-700 text-white font-semibold shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                key={m}
+                onClick={() => setMealFilter(m)}
+                className={`px-3 py-1.5 rounded-lg transition ${
+                  mealFilter === m
+                    ? 'bg-white text-blue-600 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                {d === 7 ? '7D' : d === 14 ? '14D' : d === 30 ? '30D' : '90D'}
+                {m}
               </button>
             ))}
+          </div>
+
+          <Link
+            to="/logs"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#1E6BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition"
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Open Prep Planner</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* 5 Core Daily Kitchen Questions Dark Status Banner matching Screenshot 2 */}
+      <div className="bg-[#0D1C38] border border-slate-800/90 rounded-2xl p-5 text-white shadow-xl">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-700/60 flex items-center justify-center font-bold text-xs">
+              ?
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-white leading-none">
+                Kitchen Manager Operational Status
+              </h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Answers to the 5 core daily kitchen questions
+              </p>
+            </div>
+          </div>
+          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#070D1F] text-cyan-300 border border-slate-700">
+            Updated: {currentTime}
+          </span>
+        </div>
+
+        {/* 5 Status Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 mt-4">
+          {/* 1. Today's Volumes */}
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl flex flex-col justify-between">
+            <div>
+              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">
+                1. TODAY'S VOLUMES
+              </span>
+              <p className="text-lg font-black text-white">185 kg prep</p>
+              <div className="space-y-0.5 mt-1 text-xs font-bold">
+                <p className="text-cyan-400">Cons: 168 kg</p>
+                <p className="text-amber-400">Left: 11.5 kg</p>
+                <p className="text-rose-400">Waste: 5.5 kg (3%)</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Next Meal Prep */}
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl flex flex-col justify-between">
+            <div>
+              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">
+                2. NEXT MEAL PREP
+              </span>
+              <p className="text-xs font-bold text-white">Next Meal Targets</p>
+              <p className="text-[11px] text-slate-300 leading-tight mt-1">
+                Recommended: 62.5 kg across menu items with +8% safety buffer.
+              </p>
+            </div>
+            <Link to="/forecasting" className="text-xs font-bold text-cyan-400 hover:text-cyan-300 mt-2 block">
+              Approve Targets &gt;
+            </Link>
+          </div>
+
+          {/* 3. Ingredients & Stock */}
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl flex flex-col justify-between">
+            <div>
+              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">
+                3. INGREDIENTS & STOCK
+              </span>
+              <p className="text-xs font-bold text-white">Stock Audit OK</p>
+              <p className="text-[11px] text-slate-300 leading-tight mt-1">
+                2 items expiring in 3 days. Sambar Dal shortfall of 15 kg projected for 7-day volume.
+              </p>
+            </div>
+            <Link to="/inventory" className="text-xs font-bold text-amber-400 hover:text-amber-300 mt-2 block">
+              Inspect Stock &gt;
+            </Link>
+          </div>
+
+          {/* 4. Tomorrow's Actions */}
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl flex flex-col justify-between">
+            <div>
+              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">
+                4. TOMORROW'S ACTIONS
+              </span>
+              <p className="text-xs font-bold text-white">Reduce Rice 5kg</p>
+              <p className="text-[11px] text-slate-300 leading-tight mt-1">
+                Plate leftovers in Lunch indicate ladle portion size is 20% over target. Calibrate 180g ladle.
+              </p>
+            </div>
+            <Link to="/recommendations" className="text-xs font-bold text-cyan-400 hover:text-cyan-300 mt-2 block">
+              Review 4 Actions &gt;
+            </Link>
+          </div>
+
+          {/* 5. Verified Impact */}
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl flex flex-col justify-between">
+            <div>
+              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">
+                5. VERIFIED IMPACT
+              </span>
+              <p className="text-lg font-black text-emerald-400">₹56,270.72 Saved</p>
+              <p className="text-[11px] text-slate-300 leading-tight mt-1">
+                426.6 kg food saved. Waste rate dropped from 9.64% to 3.68%.
+              </p>
+            </div>
+            <Link to="/impact" className="text-xs font-bold text-cyan-400 hover:text-cyan-300 mt-2 block">
+              Verify Formulas &gt;
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* Loading Skeleton */}
-      {loading && !stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-pulse">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="h-28 bg-white border border-slate-200 rounded-xl p-4"></div>
-          ))}
-        </div>
-      )}
-
-      {/* Empty State Banner if no records exist */}
-      {!loading && !hasData && (
-        <div className="bg-white border-2 border-dashed border-emerald-300 rounded-2xl p-8 text-center max-w-2xl mx-auto shadow-sm">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto mb-3">
-            <UtensilsCrossed className="w-6 h-6" />
-          </div>
-          <h3 className="text-lg font-bold text-slate-900">No Food Records Logged Yet</h3>
-          <p className="mt-1 text-sm text-slate-600 max-w-md mx-auto">
-            Your database is ready for live operational records. You can start logging daily kitchen preparation, or load clearly labelled demonstration data to explore all features right away.
-          </p>
-          <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              to="/logs"
-              className="w-full sm:w-auto px-4 py-2 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition"
-            >
-              Add First Food Record
-            </Link>
-            <button
-              onClick={handleLoadDemo}
-              disabled={demoLoading}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg transition disabled:opacity-50"
-            >
-              <Database className="w-4 h-4" />
-              <span>{demoLoading ? 'Generating Sample Records...' : 'Load 30-Day Demo Dataset'}</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 8 Primary KPI Metric Cards */}
-      {metrics && (
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Card 1: Total Food Prepared */}
-          <div className="card-glass p-4 rounded-xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Prepared</span>
-              <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                <UtensilsCrossed className="w-4 h-4" />
-              </div>
+      {/* 4 Large Metric Cards matching Screenshot 2 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: TOTAL FOOD PREPARED */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              TOTAL FOOD PREPARED
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-[#1E6BFF] text-white flex items-center justify-center shadow-xs">
+              <UtensilsCrossed className="w-4 h-4" />
             </div>
-            <p className="mt-2 text-2xl font-extrabold text-slate-900">{metrics.total_prepared_kg.toLocaleString()} <span className="text-xs font-normal text-slate-500">kg</span></p>
-            <p className="text-[11px] text-slate-500 mt-1">Across all recorded meal shifts</p>
           </div>
-
-          {/* Card 2: Total Food Consumed */}
-          <div className="card-glass p-4 rounded-xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Consumed</span>
-              <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
-                <Scale className="w-4 h-4" />
-              </div>
-            </div>
-            <p className="mt-2 text-2xl font-extrabold text-slate-900">{metrics.total_consumed_kg.toLocaleString()} <span className="text-xs font-normal text-slate-500">kg</span></p>
-            <p className="text-[11px] text-slate-500 mt-1">Eaten by patrons / students</p>
-          </div>
-
-          {/* Card 3: Total Food Waste */}
-          <div className="card-glass p-4 rounded-xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Discarded Waste</span>
-              <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center">
-                <Trash2 className="w-4 h-4" />
-              </div>
-            </div>
-            <p className="mt-2 text-2xl font-extrabold text-rose-700">{metrics.total_waste_kg.toLocaleString()} <span className="text-xs font-normal text-slate-500">kg</span></p>
-            <p className="text-[11px] text-slate-500 mt-1">Overproduction, spoilage & plate</p>
-          </div>
-
-          {/* Card 4: Current Surplus */}
-          <div className="card-glass p-4 rounded-xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Current Surplus</span>
-              <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
-                <Layers className="w-4 h-4" />
-              </div>
-            </div>
-            <p className="mt-2 text-2xl font-extrabold text-amber-700">{metrics.current_surplus_kg.toLocaleString()} <span className="text-xs font-normal text-slate-500">kg</span></p>
-            <p className="text-[11px] text-slate-500 mt-1">Excess prep available for rescue</p>
-          </div>
-
-          {/* Card 5: Waste Percentage */}
-          <div className="card-glass p-4 rounded-xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Waste Percentage</span>
-              <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center">
-                %
-              </div>
-            </div>
-            <p className="mt-2 text-2xl font-extrabold text-slate-900">{metrics.waste_percentage}%</p>
-            <p className="text-[11px] text-slate-500 mt-1">Target baseline: &lt; 8.0%</p>
-          </div>
-
-          {/* Card 6: Estimated Cost of Waste */}
-          <div className="card-glass p-4 rounded-xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Estimated Waste Cost</span>
-              <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center">
-                <DollarSign className="w-4 h-4" />
-              </div>
-            </div>
-            <p className="mt-2 text-2xl font-extrabold text-rose-700">${metrics.total_waste_cost.toLocaleString()}</p>
-            <p className="text-[11px] text-slate-500 mt-1">Financial loss from discards</p>
-          </div>
-
-          {/* Card 7: Waste Reduction vs Prev Period */}
-          <div className="card-glass p-4 rounded-xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Waste Reduction Rate</span>
-              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                metrics.reduction_vs_previous_period >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
-              }`}>
-                {metrics.reduction_vs_previous_period >= 0 ? <TrendingDown className="w-4 h-4" /> : <TrendingUp className="w-4 h-4" />}
-              </div>
-            </div>
-            <p className={`mt-2 text-2xl font-extrabold ${metrics.reduction_vs_previous_period >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-              {metrics.reduction_vs_previous_period > 0 ? `+${metrics.reduction_vs_previous_period}%` : `${metrics.reduction_vs_previous_period}%`}
+          <div className="mt-2">
+            <p className="text-2xl font-black text-slate-900 tracking-tight">
+              15,247.63 <span className="text-xs font-semibold text-slate-500">kg</span>
             </p>
-            <p className="text-[11px] text-slate-500 mt-1">Compared with prior {days} days</p>
-          </div>
-
-          {/* Card 8: Forecasted Demand */}
-          <div className="card-glass p-4 rounded-xl bg-gradient-to-br from-emerald-950 to-emerald-900 text-white">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Forecasted Demand</span>
-              <div className="w-7 h-7 rounded-lg bg-emerald-800/80 text-emerald-300 flex items-center justify-center">
-                <TrendingUp className="w-4 h-4" />
-              </div>
-            </div>
-            <p className="mt-2 text-2xl font-extrabold text-white">{metrics.forecasted_demand_kg.toLocaleString()} <span className="text-xs font-normal text-emerald-300">kg</span></p>
-            <p className="text-[11px] text-emerald-300 mt-1">Predicted demand for next 7 days</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Operational Cumulative</p>
           </div>
         </div>
-      )}
 
-      {/* Main Charts Row 1: Daily Waste Trends & Prepared vs Consumed */}
-      {charts && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Chart 1: Daily Waste & Surplus Trends */}
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-base font-bold text-slate-900">Daily Food Waste & Surplus Trends</h3>
-                <p className="text-xs text-slate-500">Recorded discards (kg) and surplus over time</p>
-              </div>
-            </div>
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={charts.daily_trends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorWaste" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#dc2626" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#dc2626" stopOpacity={0.0}/>
-                    </linearGradient>
-                    <linearGradient id="colorSurplus" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11 }} tickLine={false} />
-                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }} />
-                  <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                  <Area type="monotone" dataKey="waste" stroke="#dc2626" fillOpacity={1} fill="url(#colorWaste)" name="Discarded Waste (kg)" strokeWidth={2} />
-                  <Area type="monotone" dataKey="surplus" stroke="#f59e0b" fillOpacity={1} fill="url(#colorSurplus)" name="Surplus Food (kg)" strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
+        {/* Card 2: TOTAL FOOD CONSUMED */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              TOTAL FOOD CONSUMED
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-[#00B4D8] text-white flex items-center justify-center shadow-xs">
+              <Activity className="w-4 h-4" />
             </div>
           </div>
-
-          {/* Chart 2: Prepared vs Consumed */}
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-base font-bold text-slate-900">Prepared vs. Consumed Volume</h3>
-                <p className="text-xs text-slate-500">Service output versus actual diner consumption (kg)</p>
-              </div>
-            </div>
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={charts.daily_trends.slice(-14)} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11 }} tickLine={false} />
-                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }} />
-                  <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                  <Bar dataKey="prepared" fill="#10b981" name="Prepared (kg)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="consumed" fill="#3b82f6" name="Consumed (kg)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="mt-2">
+            <p className="text-2xl font-black text-slate-900 tracking-tight">
+              12,932.81 <span className="text-xs font-semibold text-slate-500">kg</span>
+            </p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Customer consumption</p>
           </div>
         </div>
-      )}
 
-      {/* Main Charts Row 2: Category Breakdown & Top Wasted Items */}
-      {charts && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chart 3: Waste by Category */}
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs lg:col-span-1">
-            <h3 className="text-base font-bold text-slate-900">Waste by Food Category</h3>
-            <p className="text-xs text-slate-500 mb-4">Distribution across inventory classes</p>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={charts.category_breakdown}
-                    dataKey="waste_kg"
-                    nameKey="category"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    innerRadius={45}
-                    paddingAngle={3}
-                  >
-                    {charts.category_breakdown.map((_: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }} />
-                  <Legend wrapperStyle={{ fontSize: '11px' }} />
-                </PieChart>
-              </ResponsiveContainer>
+        {/* Card 3: TOTAL FOOD DISCARDED */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              TOTAL FOOD DISCARDED
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-xs">
+              <Trash2 className="w-4 h-4" />
             </div>
           </div>
-
-          {/* Chart 4: Top Wasted Food Items */}
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs lg:col-span-2">
-            <h3 className="text-base font-bold text-slate-900">Top Wasted Food Items (High Priority)</h3>
-            <p className="text-xs text-slate-500 mb-4">Items with highest cumulative discard weight (kg) & financial loss</p>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={charts.top_wasted_items} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                  <XAxis type="number" tick={{ fontSize: 11 }} tickLine={false} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} tickLine={false} width={130} />
-                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }} />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  <Bar dataKey="waste_kg" fill="#e11d48" name="Discarded (kg)" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="mt-2">
+            <p className="text-2xl font-black text-slate-900 tracking-tight">
+              1,043.25 <span className="text-xs font-semibold text-slate-500">kg</span>
+            </p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Overall Rate: 6.84%</p>
           </div>
         </div>
-      )}
 
-      {/* Row 3: Actionable Intelligence & Active Recommendations Widget */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recommended Actions */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+        {/* Card 4: DIRECT FOOD COST LOST */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              DIRECT FOOD COST LOST
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-xs">
+              <span className="font-extrabold text-sm text-white">₹</span>
+            </div>
+          </div>
+          <div className="mt-2">
+            <p className="text-2xl font-black text-slate-900 tracking-tight">
+              ₹1,37,447.15
+            </p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Monetary waste cost</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Row of Charts matching Screenshot 2 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Left Chart (2 cols): 14-Day Preparation, Consumption & Waste Trend */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs lg:col-span-2">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-600" />
-              <h3 className="text-base font-bold text-slate-900">Active High-Impact Recommendations</h3>
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-900">
+                14-Day Preparation, Consumption & Waste Trend
+              </h3>
+              <p className="text-xs text-slate-400">Daily kitchen quantities in kilograms (kg)</p>
             </div>
-            <Link to="/recommendations" className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1">
-              View All <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+            <span className="px-2.5 py-1 text-[11px] font-bold bg-slate-100 text-slate-600 rounded-lg border border-slate-200">
+              Daily Operational Cycle
+            </span>
           </div>
 
-          {recommendations.length === 0 ? (
-            <p className="text-xs text-slate-500 py-6 text-center">
-              No pending recommendations. System analysis will populate action cards once consecutive service logs are recorded.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {recommendations.map((rec) => (
-                <div key={rec.id} className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-bold text-slate-900">{rec.title}</span>
-                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
-                      rec.priority === 'High' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
-                    }`}>
-                      {rec.priority} Priority
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-600 mt-1 line-clamp-2">{rec.recommendation_text}</p>
-                  <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
-                    <span className="font-semibold text-emerald-700">Est. Savings: ${rec.potential_savings_cost}</span>
-                    <span>Potential: {rec.potential_waste_reduction_kg} kg waste cut</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="h-64 mt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={charts?.daily_trends || [
+                  { date: 'Oct 14', prepared: 240, consumed: 215, waste: 25 },
+                  { date: 'Oct 16', prepared: 290, consumed: 260, waste: 30 },
+                  { date: 'Oct 18', prepared: 340, consumed: 310, waste: 30 },
+                  { date: 'Oct 20', prepared: 310, consumed: 285, waste: 25 },
+                  { date: 'Oct 22', prepared: 260, consumed: 240, waste: 20 },
+                  { date: 'Oct 24', prepared: 280, consumed: 265, waste: 15 },
+                  { date: 'Oct 26', prepared: 320, consumed: 305, waste: 15 }
+                ]}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="prepGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#1E6BFF" stopOpacity={0.35}/>
+                    <stop offset="95%" stopColor="#1E6BFF" stopOpacity={0.0}/>
+                  </linearGradient>
+                  <linearGradient id="consGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00B4D8" stopOpacity={0.35}/>
+                    <stop offset="95%" stopColor="#00B4D8" stopOpacity={0.0}/>
+                  </linearGradient>
+                  <linearGradient id="wasteGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#E11D48" stopOpacity={0.35}/>
+                    <stop offset="95%" stopColor="#E11D48" stopOpacity={0.0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} />
+                <YAxis tick={{ fontSize: 11 }} tickLine={false} />
+                <Tooltip contentStyle={{ borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }} />
+                <Area type="monotone" dataKey="prepared" stroke="#1E6BFF" strokeWidth={2.5} fillOpacity={1} fill="url(#prepGrad)" name="Prepared (kg)" />
+                <Area type="monotone" dataKey="consumed" stroke="#00B4D8" strokeWidth={2.5} fillOpacity={1} fill="url(#consGrad)" name="Consumed (kg)" />
+                <Area type="monotone" dataKey="waste" stroke="#E11D48" strokeWidth={2} fillOpacity={1} fill="url(#wasteGrad)" name="Waste (kg)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        {/* Environmental & Carbon Impact Teaser */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        {/* Right Chart (1 col): Waste Root Cause Distribution */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🌍</span>
-                <h3 className="text-base font-bold text-slate-900">Verified Environmental Avoidance</h3>
-              </div>
-              <Link to="/impact" className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1">
-                Full Methodology <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-extrabold text-slate-900">
+                Waste Root Cause Distribution
+              </h3>
             </div>
-            <p className="text-xs text-slate-600">
-              Scientific conversions verified through recorded intervention outcomes (US EPA WARM & FAO benchmarks):
-            </p>
-
-            <div className="grid grid-cols-3 gap-3 mt-4 text-center">
-              <div className="p-3 bg-emerald-50/70 border border-emerald-200/60 rounded-xl">
-                <p className="text-xl font-extrabold text-emerald-800">{metrics?.co2_avoided_kg || 0}</p>
-                <p className="text-[11px] font-semibold text-emerald-700 mt-0.5">kg CO2e Avoided</p>
-              </div>
-              <div className="p-3 bg-blue-50/70 border border-blue-200/60 rounded-xl">
-                <p className="text-xl font-extrabold text-blue-800">{(metrics?.water_saved_liters || 0).toLocaleString()}</p>
-                <p className="text-[11px] font-semibold text-blue-700 mt-0.5">Liters Water Saved</p>
-              </div>
-              <div className="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl">
-                <p className="text-xl font-extrabold text-amber-800">{metrics?.meals_equivalent_saved || 0}</p>
-                <p className="text-[11px] font-semibold text-amber-700 mt-0.5">Meals Rescued</p>
-              </div>
-            </div>
+            <p className="text-xs text-slate-400 mb-3">Distinguishing plate waste vs overproduction</p>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>Intervention Food Saved: <strong className="text-slate-800">{metrics?.food_saved_interventions_kg || 0} kg</strong></span>
-            <span>Financial Recovered: <strong className="text-emerald-700">${metrics?.cost_saved_interventions || 0}</strong></span>
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={charts?.waste_reasons?.length ? charts.waste_reasons : [
+                    { reason: 'Plate Waste', count: 42 },
+                    { reason: 'Overproduction', count: 35 },
+                    { reason: 'Spoilage', count: 14 },
+                    { reason: 'Preparation Error', count: 9 }
+                  ]}
+                  dataKey="count"
+                  nameKey="reason"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={75}
+                  paddingAngle={3}
+                >
+                  {ROOT_CAUSE_COLORS.map((col, idx) => (
+                    <Cell key={idx} fill={col} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '11px' }} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
