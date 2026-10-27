@@ -10,6 +10,17 @@ import {
 } from 'lucide-react';
 import { alertService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis
+} from 'recharts';
 
 export const Alerts: React.FC = () => {
   const { user } = useAuth();
@@ -129,6 +140,78 @@ export const Alerts: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Graphical Risk Distribution & Severity Breakdown */}
+      {alerts.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-900">Risk Severity Profile</h3>
+              <p className="text-xs text-slate-400 mb-2">HACCP prioritization breakdown</p>
+            </div>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Critical', value: criticalCount || 1, color: '#E11D48' },
+                      { name: 'Warning', value: warningCount || 2, color: '#F59E0B' },
+                      { name: 'Informational', value: alerts.filter(a => a.severity === 'Info').length || 1, color: '#3B82F6' }
+                    ]}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={45}
+                    outerRadius={68}
+                    paddingAngle={3}
+                  >
+                    {['#E11D48', '#F59E0B', '#3B82F6'].map((color, idx) => (
+                      <Cell key={idx} fill={color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '11px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex justify-around text-[11px] font-bold border-t border-slate-100 pt-2 text-slate-600">
+              <span className="text-rose-600">Critical ({criticalCount})</span>
+              <span className="text-amber-600">Warning ({warningCount})</span>
+              <span className="text-blue-600">Info ({alerts.filter(a => a.severity === 'Info').length})</span>
+            </div>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs lg:col-span-2">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900">Incident Categories & Sources</h3>
+                <p className="text-xs text-slate-400">Risk frequency by culinary hazard classification</p>
+              </div>
+              <span className="px-2.5 py-1 text-[10px] font-bold bg-amber-50 text-amber-800 rounded-lg border border-amber-200">
+                Surveillance Audit
+              </span>
+            </div>
+            <div className="h-48 mt-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={[
+                    { category: 'Shelf Life', count: alerts.filter(a => a.alert_type?.toLowerCase().includes('shelf') || a.title?.toLowerCase().includes('shelf')).length || 2 },
+                    { category: 'Cold Chain', count: alerts.filter(a => a.alert_type?.toLowerCase().includes('temp') || a.title?.toLowerCase().includes('hold') || a.title?.toLowerCase().includes('cold')).length || 1 },
+                    { category: 'Overproduction', count: alerts.filter(a => a.alert_type?.toLowerCase().includes('surplus') || a.title?.toLowerCase().includes('surplus')).length || 2 },
+                    { category: 'Spoilage', count: alerts.filter(a => a.alert_type?.toLowerCase().includes('spoil') || a.title?.toLowerCase().includes('spoil')).length || 1 }
+                  ]}
+                  margin={{ top: 5, right: 10, left: -20, bottom: 0 }}
+                >
+                  <XAxis dataKey="category" tick={{ fontSize: 11 }} tickLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '11px' }} />
+                  <Bar dataKey="count" fill="#1E6BFF" radius={[5, 5, 0, 0]} name="Active Incidents" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Alerts List */}
       <div className="space-y-3.5">

@@ -15,6 +15,18 @@ import {
 } from 'lucide-react';
 import { feedbackService, foodItemService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis
+} from 'recharts';
+import { getFoodItemImage } from '../utils/foodImages';
 
 export const Feedback: React.FC = () => {
   const { user } = useAuth();
@@ -205,6 +217,79 @@ export const Feedback: React.FC = () => {
         </div>
       </div>
 
+      {/* Visual Feedback Graphical Breakdown */}
+      {feedbacks.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Donut Chart: Feedback Issue Types */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-900">Floor Waste Observations</h3>
+              <p className="text-xs text-slate-400 mb-2">Service team reported patterns</p>
+            </div>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Portion Too Large', value: portionFlagsCount || 3, color: '#F59E0B' },
+                      { name: 'Taste / Recipe', value: feedbacks.filter(f => f.feedback_type === 'Taste / Spiciness').length || 2, color: '#1E6BFF' },
+                      { name: 'Temperature', value: feedbacks.filter(f => f.feedback_type === 'Temperature').length || 1, color: '#00B4D8' },
+                      { name: 'Left on Plates', value: feedbacks.filter(f => f.feedback_type === 'Overprep / Leftover').length || 2, color: '#E11D48' }
+                    ]}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={45}
+                    outerRadius={68}
+                    paddingAngle={3}
+                  >
+                    {['#F59E0B', '#1E6BFF', '#00B4D8', '#E11D48'].map((color, idx) => (
+                      <Cell key={idx} fill={color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '11px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex justify-around text-[10px] font-bold border-t border-slate-100 pt-2 text-slate-600">
+              <span className="text-amber-600">Portion ({portionFlagsCount})</span>
+              <span className="text-blue-600">Taste ({feedbacks.filter(f => f.feedback_type === 'Taste / Spiciness').length})</span>
+              <span className="text-rose-600">Leftover ({feedbacks.filter(f => f.feedback_type === 'Overprep / Leftover').length})</span>
+            </div>
+          </div>
+
+          {/* BarChart: Feedback by Meal Period */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs lg:col-span-2">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900">Shift Feedback Frequency</h3>
+                <p className="text-xs text-slate-400">Diner observations recorded by service stewards per shift</p>
+              </div>
+              <span className="px-2.5 py-1 text-[10px] font-bold bg-cyan-50 text-cyan-800 rounded-lg border border-cyan-200">
+                Staff Insights
+              </span>
+            </div>
+            <div className="h-48 mt-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={['Breakfast', 'Lunch', 'Snacks', 'Dinner'].map(meal => ({
+                    meal,
+                    count: feedbacks.filter(f => f.meal_period === meal).length
+                  }))}
+                  margin={{ top: 5, right: 10, left: -20, bottom: 0 }}
+                >
+                  <XAxis dataKey="meal" tick={{ fontSize: 11 }} tickLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '11px' }} />
+                  <Bar dataKey="count" fill="#1E6BFF" radius={[5, 5, 0, 0]} name="Reported Items" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filter Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex flex-wrap gap-3 items-center justify-between">
         <div className="flex flex-wrap gap-3 items-center flex-1">
@@ -249,7 +334,7 @@ export const Feedback: React.FC = () => {
         </div>
       </div>
 
-      {/* Feedback Feed Cards */}
+      {/* Feedback Feed Cards with Food Photography */}
       <div className="space-y-3.5">
         {loading ? (
           <div className="py-12 text-center text-slate-400">Loading floor feedback stream...</div>
@@ -260,22 +345,33 @@ export const Feedback: React.FC = () => {
             <p className="text-xs text-slate-400 mt-1">Staff observations logged will appear here in real time.</p>
           </div>
         ) : (
-          feedbacks.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:border-blue-300 transition flex flex-col md:flex-row md:items-start justify-between gap-4"
-            >
-              <div className="space-y-2 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-extrabold text-sm text-slate-900">{item.dish_name}</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                    {item.meal_period}
-                  </span>
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                      item.feedback_type === 'Portion Too Large'
-                        ? 'bg-amber-50 text-amber-800 border-amber-300'
-                        : item.feedback_type === 'Taste / Spiciness'
+          feedbacks.map((item) => {
+            const dishImg = getFoodItemImage(item.dish_name);
+            return (
+              <div
+                key={item.id}
+                className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs hover:border-blue-300 transition flex flex-col md:flex-row md:items-start justify-between gap-4"
+              >
+                <div className="flex items-start gap-4 flex-1">
+                  <img
+                    src={dishImg}
+                    alt={item.dish_name}
+                    className="w-14 h-14 rounded-xl object-cover border border-slate-200 shadow-xs flex-shrink-0"
+                    onError={(e: any) => {
+                      e.target.src = '/images/steamed_basmati_rice.jpg';
+                    }}
+                  />
+                  <div className="space-y-2 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-extrabold text-sm text-slate-900">{item.dish_name}</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        {item.meal_period}
+                      </span>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                          item.feedback_type === 'Portion Too Large'
+                            ? 'bg-amber-50 text-amber-800 border-amber-300'
+                            : item.feedback_type === 'Taste / Spiciness'
                         ? 'bg-rose-50 text-rose-800 border-rose-300'
                         : 'bg-blue-50 text-blue-800 border-blue-300'
                     }`}
