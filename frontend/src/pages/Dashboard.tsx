@@ -401,6 +401,100 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Culinary Focus Dishes & Live Portion Sizing Stream */}
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <UtensilsCrossed className="w-4 h-4 text-blue-600" />
+              <span>High-Waste Mitigation Dishes & Culinary Control</span>
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Live prep inventory items with high volume production and targeted portion reduction guidance
+            </p>
+          </div>
+          <Link
+            to="/inventory"
+            className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 self-start sm:self-auto"
+          >
+            <span>View Full Food Catalog</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            {
+              name: 'Steamed Basmati Rice',
+              category: 'Grains & Staples',
+              image: '/images/steamed_basmati_rice.jpg',
+              wastePct: '3.8%',
+              action: 'Calibrate serving ladle to 120g portion',
+              storage: 'Keep steam held > 65°C',
+              cost: '₹45/kg'
+            },
+            {
+              name: 'Paneer Butter Masala',
+              category: 'Cooked Meals / Gravy',
+              image: '/images/paneer_butter_masala.jpg',
+              wastePct: '2.1%',
+              action: 'Batch cooking in 15kg split kettles',
+              storage: 'Refrigerate cold reserve < 4°C',
+              cost: '₹120/kg'
+            },
+            {
+              name: 'Vegetable Sambar Dal',
+              category: 'Cooked Meals / Soups',
+              image: '/images/vegetable_sambar.jpg',
+              wastePct: '4.5%',
+              action: 'Monitor steam table evaporation loss',
+              storage: 'Hot well holding > 60°C',
+              cost: '₹35/kg'
+            },
+            {
+              name: 'Garden Fresh Salad',
+              category: 'Produce & Salads',
+              image: '/images/fresh_green_salad.jpg',
+              wastePct: '5.2%',
+              action: 'Dress only on service demand to prevent sogginess',
+              storage: 'Cold display line < 5°C',
+              cost: '₹55/kg'
+            }
+          ].map((dish, idx) => (
+            <div key={idx} className="bg-slate-50/70 rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-md transition group">
+              <div className="relative h-32 w-full overflow-hidden bg-slate-900">
+                <img
+                  src={dish.image}
+                  alt={dish.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/20" />
+                <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-black/60 text-white backdrop-blur-md border border-white/20">
+                  {dish.category}
+                </span>
+                <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-600/90 text-white shadow-xs">
+                  {dish.wastePct} Waste
+                </span>
+                <span className="absolute bottom-2 left-2 text-xs font-black text-white drop-shadow-md">
+                  {dish.name}
+                </span>
+              </div>
+              <div className="p-3 space-y-2 text-xs">
+                <div className="flex justify-between items-center text-[11px] text-slate-500">
+                  <span>Unit Cost: <strong className="text-slate-800">{dish.cost}</strong></span>
+                  <span className="text-cyan-700 font-semibold">{dish.storage}</span>
+                </div>
+                <div className="bg-white p-2 rounded-xl border border-slate-200/80 text-[11px] font-medium text-slate-700">
+                  <span className="text-[10px] font-bold text-blue-600 block uppercase">Operational Action</span>
+                  {dish.action}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
+

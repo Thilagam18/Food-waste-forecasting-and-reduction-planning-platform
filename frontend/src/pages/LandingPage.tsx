@@ -99,6 +99,71 @@ export const LandingPage: React.FC = () => {
           </Link>
         </div>
 
+        {/* Commercial Kitchen Hero Banner */}
+        <div className="mt-12 relative rounded-3xl overflow-hidden border border-slate-700/70 shadow-2xl max-w-5xl mx-auto h-64 sm:h-96 group">
+          <img
+            src="/images/kitchen_hero.jpg"
+            alt="Commercial Smart Kitchen"
+            className="w-full h-full object-cover group-hover:scale-102 transition duration-700"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050B18] via-[#050B18]/30 to-transparent" />
+          
+          <div className="absolute top-4 left-4 flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-[#050B18]/80 backdrop-blur-md text-cyan-400 border border-cyan-500/40 shadow-lg">
+              Live Kitchen Operations Monitoring
+            </span>
+          </div>
+
+          <div className="absolute bottom-6 left-6 right-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="text-left">
+              <span className="text-[11px] font-bold text-cyan-300 uppercase tracking-widest block">
+                Integrated Prep Station Dispatch
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-white">
+                Connecting Shift Prep, Portion Calibration & Cold Holding
+              </h2>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="px-3 py-2 rounded-xl bg-black/60 backdrop-blur-md border border-slate-700 text-left">
+                <span className="text-[10px] text-slate-400 block font-semibold">Average Discard Reduction</span>
+                <strong className="text-emerald-400 text-sm font-extrabold">-38% in 30 Days</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Culinary Dishes Showcase Preview */}
+        <div className="mt-14 max-w-5xl mx-auto text-left">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block">Real Food Photography & Recipe Inventory</span>
+              <h3 className="text-lg font-black text-white">Tracked Preparations & Portion Calibrations</h3>
+            </div>
+            <span className="text-xs text-slate-400 font-medium">HACCP Cold & Hot Holding Calibrated</span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              { name: 'Basmati Rice', img: '/images/steamed_basmati_rice.jpg', cat: 'Grains' },
+              { name: 'Paneer Masala', img: '/images/paneer_butter_masala.jpg', cat: 'Gravies' },
+              { name: 'Sambar Dal', img: '/images/vegetable_sambar.jpg', cat: 'Soups' },
+              { name: 'Green Salad', img: '/images/fresh_green_salad.jpg', cat: 'Salads' },
+              { name: 'Chicken Biryani', img: '/images/chicken_biryani.jpg', cat: 'Specials' },
+              { name: 'Gulab Jamun', img: '/images/gulab_jamun.jpg', cat: 'Desserts' }
+            ].map((d, i) => (
+              <div key={i} className="bg-[#0C162E] rounded-xl border border-slate-800 overflow-hidden group hover:border-cyan-500/50 transition">
+                <div className="h-24 w-full overflow-hidden">
+                  <img src={d.img} alt={d.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-300" />
+                </div>
+                <div className="p-2">
+                  <span className="text-xs font-bold text-white block truncate">{d.name}</span>
+                  <span className="text-[10px] text-slate-400">{d.cat}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Demo Presets Bar */}
         <div className="mt-12 max-w-2xl mx-auto bg-[#0C162E] border border-slate-800/80 rounded-2xl p-5 shadow-2xl">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-3">
