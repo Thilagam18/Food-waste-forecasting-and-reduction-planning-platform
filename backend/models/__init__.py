@@ -6,6 +6,7 @@ from backend.models.forecast_result import ForecastResult
 from backend.models.recommendation import Recommendation
 from backend.models.alert import Alert
 from backend.models.intervention_outcome import InterventionOutcome
+from backend.models.feedback import StaffFeedback
 
 __all__ = [
     'Organization',
@@ -15,5 +16,6 @@ __all__ = [
     'ForecastResult',
     'Recommendation',
     'Alert',
-    'InterventionOutcome'
+    'InterventionOutcome',
+    'StaffFeedback'
 ]

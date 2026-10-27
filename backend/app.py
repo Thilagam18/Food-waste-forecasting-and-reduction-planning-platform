@@ -12,6 +12,7 @@ from backend.routes.alerts import alerts_bp
 from backend.routes.reports import reports_bp
 from backend.routes.impact import impact_bp
 from backend.routes.demo import demo_bp
+from backend.routes.feedback import feedback_bp
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -33,6 +34,7 @@ def create_app(config_class=Config):
     app.register_blueprint(reports_bp)
     app.register_blueprint(impact_bp)
     app.register_blueprint(demo_bp)
+    app.register_blueprint(feedback_bp)
 
     @app.route('/')
     def index():

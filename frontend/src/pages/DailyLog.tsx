@@ -12,8 +12,11 @@ import {
   UtensilsCrossed
 } from 'lucide-react';
 import { foodLogService, foodItemService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export const DailyLog: React.FC = () => {
+  const { user } = useAuth();
+  const orgName = user?.organization_name || 'Apex Culinary Campus';
   const [logs, setLogs] = useState<any[]>([]);
   const [foodItems, setFoodItems] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -227,24 +230,85 @@ export const DailyLog: React.FC = () => {
     }
   };
 
+  const sumPrep = logs.reduce((a, b) => a + (Number(b.quantity_prepared) || 0), 0);
+  const sumCons = logs.reduce((a, b) => a + (Number(b.quantity_consumed) || 0), 0);
+  const sumWaste = logs.reduce((a, b) => a + (Number(b.discarded_quantity) || 0), 0);
+  const sumCost = logs.reduce((a, b) => a + (Number(b.waste_cost) || 0), 0);
+
   return (
     <div className="space-y-5">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+        <span className="text-cyan-700 font-bold">{orgName}</span>
+        <span>•</span>
+        <span>Waste Data Logs & Preparation Tracking</span>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Daily Food Preparation & Waste Logs</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Log kitchen preparation volumes, diner consumption, unserved surplus, and discarded waste
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Daily Kitchen Waste & Prep Logs</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Log preparation batches, diner consumption, unserved surplus, and discarded waste with root-cause categorization.
           </p>
         </div>
 
         <button
           onClick={handleOpenAddModal}
-          className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition"
+          className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-white bg-[#1E6BFF] hover:bg-blue-600 rounded-xl shadow-md shadow-blue-500/25 transition"
         >
           <Plus className="w-4 h-4" />
           <span>Log Daily Service</span>
         </button>
+      </div>
+
+      {/* 5-Column Intelligence Banner */}
+      <div className="bg-[#0D1C38] border border-slate-800/90 rounded-2xl p-5 text-white shadow-xl">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-xl bg-cyan-950 text-cyan-400 border border-cyan-700/60 flex items-center justify-center font-bold text-xs">
+              <UtensilsCrossed className="w-4 h-4 text-cyan-400" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-white leading-none">
+                Service Waste & Discard Tracking Summary
+              </h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Current filter batch operational aggregates
+              </p>
+            </div>
+          </div>
+          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#070D1F] text-cyan-300 border border-slate-700">
+            {totalCount} Total Logged Records
+          </span>
+        </div>
+
+        {/* 4 Summary Insets */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5 mt-4">
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Total Prepared</span>
+            <p className="text-xl font-extrabold text-white">{sumPrep.toLocaleString('en-IN', { maximumFractionDigits: 1 })} kg</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Batch production volume</p>
+          </div>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Total Consumed</span>
+            <p className="text-xl font-extrabold text-cyan-400">{sumCons.toLocaleString('en-IN', { maximumFractionDigits: 1 })} kg</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Customer consumption</p>
+          </div>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Total Discarded</span>
+            <p className="text-xl font-extrabold text-rose-400">{sumWaste.toLocaleString('en-IN', { maximumFractionDigits: 1 })} kg</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Discard waste rate: {sumPrep > 0 ? `${((sumWaste / sumPrep) * 100).toFixed(1)}%` : '0%'}</p>
+          </div>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Direct Cost Lost</span>
+            <p className="text-xl font-extrabold text-amber-400">₹{sumCost.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Raw material loss</p>
+          </div>
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -328,7 +392,7 @@ export const DailyLog: React.FC = () => {
                 <th className="py-3 px-4 text-right">Consumed</th>
                 <th className="py-3 px-4 text-right">Surplus</th>
                 <th className="py-3 px-4 text-right">Discarded</th>
-                <th className="py-3 px-4 text-right">Cost ($)</th>
+                <th className="py-3 px-4 text-right">Cost (₹)</th>
                 <th className="py-3 px-4">Waste Reason</th>
                 <th className="py-3 px-4 text-center">Actions</th>
               </tr>
@@ -369,8 +433,8 @@ export const DailyLog: React.FC = () => {
                     <td className="py-3 px-4 text-right font-bold text-rose-700">
                       {log.discarded_quantity} <span className="text-[10px] font-normal text-slate-500">{log.unit}</span>
                     </td>
-                    <td className="py-3 px-4 text-right font-semibold text-slate-900">
-                      ${log.waste_cost}
+                    <td className="py-3 px-4 text-right font-bold text-slate-900">
+                      ₹{log.waste_cost}
                     </td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
@@ -580,14 +644,14 @@ export const DailyLog: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">Unit Cost ($ per unit)</label>
+                  <label className="block text-xs font-semibold text-slate-700">Unit Cost (₹ per unit)</label>
                   <input
                     type="number"
                     step="0.01"
                     min="0"
                     value={formData.unit_cost}
                     onChange={(e) => setFormData({ ...formData, unit_cost: e.target.value })}
-                    placeholder="e.g. 4.50"
+                    placeholder="e.g. 60.00"
                     className="mt-1 block w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs"
                   />
                 </div>
@@ -616,7 +680,7 @@ export const DailyLog: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-1.5 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition disabled:opacity-50"
+                  className="px-5 py-2 text-xs font-bold text-white bg-[#1E6BFF] hover:bg-blue-600 rounded-xl shadow-md shadow-blue-500/25 transition disabled:opacity-50"
                 >
                   {submitting ? 'Saving...' : editingId ? 'Update Record' : 'Save Food Record'}
                 </button>

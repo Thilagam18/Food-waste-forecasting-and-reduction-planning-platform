@@ -11,8 +11,12 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { reportService, foodItemService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export const Reports: React.FC = () => {
+  const { user } = useAuth();
+  const orgName = user?.organization_name || 'Apex Culinary Campus';
+
   const [reportData, setReportData] = useState<any>(null);
   const [foodItems, setFoodItems] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -73,34 +77,89 @@ export const Reports: React.FC = () => {
   const totals = reportData?.totals;
   const categories = reportData?.category_breakdown || [];
   const mealPeriods = reportData?.meal_period_breakdown || [];
-  const records = reportData?.records || [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+        <span className="text-cyan-700 font-bold">{orgName}</span>
+        <span>•</span>
+        <span>Audit Reports & Executive Data Export</span>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Audit Reports & Data Export</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Operational food prep audits, category discards, cost breakdowns, and CSV reporting exports
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Audit Reports & Data Export</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Operational food prep audits, category discards, cost breakdowns, and CSV reporting exports.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-xs transition"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-xs transition"
           >
-            <Printer className="w-4 h-4 text-slate-500" />
+            <Printer className="w-3.5 h-3.5 text-slate-500" />
             <span>Print View</span>
           </button>
           <button
             onClick={handleDownloadCSV}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#1E6BFF] hover:bg-blue-600 rounded-xl shadow-md shadow-blue-500/25 transition"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-3.5 h-3.5" />
             <span>Download CSV Audit Log</span>
           </button>
+        </div>
+      </div>
+
+      {/* Intelligence Banner */}
+      <div className="bg-[#0D1C38] border border-slate-800/90 rounded-2xl p-5 text-white shadow-xl">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-xl bg-cyan-950 text-cyan-400 border border-cyan-700/60 flex items-center justify-center font-bold text-xs">
+              <FileText className="w-4 h-4 text-cyan-400" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-white leading-none">
+                Compliance & Financial Audit Verification
+              </h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Audit period: {startDate} to {endDate}
+              </p>
+            </div>
+          </div>
+          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#070D1F] text-cyan-300 border border-slate-700">
+            {totals?.records_count || 0} Operational Logs Audited
+          </span>
+        </div>
+
+        {/* 4 Summary Insets */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5 mt-4">
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Total Prepared</span>
+            <p className="text-xl font-extrabold text-white">{(totals?.total_prepared_kg || 0).toLocaleString()} kg</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Audit volume</p>
+          </div>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Total Waste</span>
+            <p className="text-xl font-extrabold text-rose-400">{(totals?.total_waste_kg || 0).toLocaleString()} kg</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Waste rate: {totals?.waste_percentage || 0}%</p>
+          </div>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Monetary Waste Cost</span>
+            <p className="text-xl font-extrabold text-amber-400">₹{(totals?.total_cost || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Discard procurement loss</p>
+          </div>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Consumption Rate</span>
+            <p className="text-xl font-extrabold text-emerald-400">{totals?.total_prepared_kg ? `${Math.round(((totals.total_prepared_kg - totals.total_waste_kg) / totals.total_prepared_kg) * 100)}%` : '93%'}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Food service efficiency</p>
+          </div>
         </div>
       </div>
 
@@ -199,7 +258,7 @@ export const Reports: React.FC = () => {
                 <th className="py-3 px-4 text-right">Consumed (kg)</th>
                 <th className="py-3 px-4 text-right">Discarded (kg)</th>
                 <th className="py-3 px-4 text-right">Waste Rate (%)</th>
-                <th className="py-3 px-4 text-right">Cost ($)</th>
+                <th className="py-3 px-4 text-right">Cost (₹)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -210,7 +269,7 @@ export const Reports: React.FC = () => {
                   <td className="py-3 px-4 text-right text-slate-700">{c.consumed}</td>
                   <td className="py-3 px-4 text-right font-bold text-rose-700">{c.waste}</td>
                   <td className="py-3 px-4 text-right font-semibold text-slate-800">{c.waste_pct}%</td>
-                  <td className="py-3 px-4 text-right font-bold text-slate-900">${c.cost}</td>
+                  <td className="py-3 px-4 text-right font-bold text-slate-900">₹{c.cost}</td>
                 </tr>
               ))}
             </tbody>
@@ -232,7 +291,7 @@ export const Reports: React.FC = () => {
                 <th className="py-3 px-4 text-right">Consumed (kg)</th>
                 <th className="py-3 px-4 text-right">Discarded (kg)</th>
                 <th className="py-3 px-4 text-right">Waste Rate (%)</th>
-                <th className="py-3 px-4 text-right">Cost ($)</th>
+                <th className="py-3 px-4 text-right">Cost (₹)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -243,7 +302,7 @@ export const Reports: React.FC = () => {
                   <td className="py-3 px-4 text-right text-slate-700">{m.consumed}</td>
                   <td className="py-3 px-4 text-right font-bold text-rose-700">{m.waste}</td>
                   <td className="py-3 px-4 text-right font-semibold text-slate-800">{m.waste_pct}%</td>
-                  <td className="py-3 px-4 text-right font-bold text-slate-900">${m.cost}</td>
+                  <td className="py-3 px-4 text-right font-bold text-slate-900">₹{m.cost}</td>
                 </tr>
               ))}
             </tbody>

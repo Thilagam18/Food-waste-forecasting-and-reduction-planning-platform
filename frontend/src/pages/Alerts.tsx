@@ -9,8 +9,12 @@ import {
   Info
 } from 'lucide-react';
 import { alertService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export const Alerts: React.FC = () => {
+  const { user } = useAuth();
+  const orgName = user?.organization_name || 'Apex Culinary Campus';
+
   const [alerts, setAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [filterResolved, setFilterResolved] = useState<string>('false');
@@ -42,26 +46,88 @@ export const Alerts: React.FC = () => {
     }
   };
 
+  const activeAlerts = alerts.filter(a => !a.is_resolved);
+  const criticalCount = activeAlerts.filter(a => a.severity === 'Critical').length;
+  const warningCount = activeAlerts.filter(a => a.severity === 'Warning').length;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+        <span className="text-cyan-700 font-bold">{orgName}</span>
+        <span>•</span>
+        <span>Waste Risk & Operational Alerts</span>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">System & Operational Alerts</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Active notifications for food shelf-life limits, sudden spoilage spikes, and high-risk surplus conditions
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Waste Risk & Operational Alerts</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Real-time notifications for food shelf-life limits, sudden spoilage spikes, and high-risk surplus conditions.
           </p>
         </div>
 
         <select
           value={filterResolved}
           onChange={(e) => setFilterResolved(e.target.value)}
-          className="text-xs py-1.5 px-3 rounded-lg border border-slate-300 bg-white"
+          className="text-xs py-2 px-3 rounded-xl border border-slate-300 bg-white font-bold text-slate-700"
         >
-          <option value="false">Active Alerts Only</option>
+          <option value="false">Active Alerts Only ({activeAlerts.length})</option>
           <option value="true">Resolved Alerts</option>
-          <option value="all">All Alerts</option>
+          <option value="all">All Historical Alerts</option>
         </select>
+      </div>
+
+      {/* Intelligence Banner */}
+      <div className="bg-[#0D1C38] border border-slate-800/90 rounded-2xl p-5 text-white shadow-xl">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-xl bg-cyan-950 text-cyan-400 border border-cyan-700/60 flex items-center justify-center font-bold text-xs">
+              <AlertTriangle className="w-4 h-4 text-cyan-400" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-white leading-none">
+                Kitchen Risk & Prevention Monitor
+              </h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Surveillance across cold holding, shelf life, and portion variance
+              </p>
+            </div>
+          </div>
+          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#070D1F] text-cyan-300 border border-slate-700">
+            {activeAlerts.length} Active Risks Requiring Attention
+          </span>
+        </div>
+
+        {/* 4 Risk Status Insets */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5 mt-4">
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Risk Severity</span>
+            <p className={`text-xl font-extrabold ${criticalCount > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+              {criticalCount > 0 ? 'Elevated Risk' : 'Operational OK'}
+            </p>
+            <p className="text-[11px] text-slate-400 mt-0.5">HACCP threshold</p>
+          </div>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Critical Flags</span>
+            <p className="text-xl font-extrabold text-rose-400">{criticalCount}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Immediate intervention</p>
+          </div>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Warning Flags</span>
+            <p className="text-xl font-extrabold text-amber-400">{warningCount}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Shelf life / portion skew</p>
+          </div>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Cold Chain Audit</span>
+            <p className="text-xl font-extrabold text-emerald-400">Compliant</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Refrigeration &lt; 4°C verified</p>
+          </div>
+        </div>
       </div>
 
       {/* Alerts List */}

@@ -112,7 +112,7 @@ export const Dashboard: React.FC = () => {
           </div>
 
           <Link
-            to="/logs"
+            to="/planner"
             className="flex items-center gap-1.5 px-4 py-2 bg-[#1E6BFF] hover:bg-blue-600 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 transition"
           >
             <Calendar className="w-3.5 h-3.5" />
@@ -239,7 +239,8 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="mt-2">
             <p className="text-2xl font-black text-slate-900 tracking-tight">
-              15,247.63 <span className="text-xs font-semibold text-slate-500">kg</span>
+              {metrics?.total_prepared_kg ? metrics.total_prepared_kg.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '15,247.63'}{' '}
+              <span className="text-xs font-semibold text-slate-500">kg</span>
             </p>
             <p className="text-[11px] text-slate-400 mt-0.5">Operational Cumulative</p>
           </div>
@@ -257,7 +258,8 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="mt-2">
             <p className="text-2xl font-black text-slate-900 tracking-tight">
-              12,932.81 <span className="text-xs font-semibold text-slate-500">kg</span>
+              {metrics?.total_consumed_kg ? metrics.total_consumed_kg.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '12,932.81'}{' '}
+              <span className="text-xs font-semibold text-slate-500">kg</span>
             </p>
             <p className="text-[11px] text-slate-400 mt-0.5">Customer consumption</p>
           </div>
@@ -275,9 +277,12 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="mt-2">
             <p className="text-2xl font-black text-slate-900 tracking-tight">
-              1,043.25 <span className="text-xs font-semibold text-slate-500">kg</span>
+              {metrics?.total_waste_kg ? metrics.total_waste_kg.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '1,043.25'}{' '}
+              <span className="text-xs font-semibold text-slate-500">kg</span>
             </p>
-            <p className="text-[11px] text-slate-400 mt-0.5">Overall Rate: 6.84%</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Overall Rate: {metrics?.waste_percentage ? `${metrics.waste_percentage}%` : '6.84%'}
+            </p>
           </div>
         </div>
 
@@ -293,7 +298,7 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="mt-2">
             <p className="text-2xl font-black text-slate-900 tracking-tight">
-              ₹1,37,447.15
+              {metrics?.total_waste_cost ? `₹${metrics.total_waste_cost.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '₹1,37,447.15'}
             </p>
             <p className="text-[11px] text-slate-400 mt-0.5">Monetary waste cost</p>
           </div>

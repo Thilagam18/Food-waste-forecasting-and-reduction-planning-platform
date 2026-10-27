@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Utensils, AlertCircle, X, CheckCircle2 } from 'lucide-react';
 import { foodItemService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const CATEGORIES = [
   'Cooked Meals',
@@ -14,6 +15,9 @@ const CATEGORIES = [
 ];
 
 export const Inventory: React.FC = () => {
+  const { user } = useAuth();
+  const orgName = user?.organization_name || 'Apex Culinary Campus';
+
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [categoryFilter, setCategoryFilter] = useState<string>('');
@@ -30,7 +34,7 @@ export const Inventory: React.FC = () => {
     name: '',
     category: 'Cooked Meals',
     unit: 'kg',
-    default_unit_cost: '0.00',
+    default_unit_cost: '60.00',
     shelf_life_days: '2',
     storage_condition: 'Refrigerated',
     is_active: true
@@ -62,7 +66,7 @@ export const Inventory: React.FC = () => {
       name: '',
       category: 'Cooked Meals',
       unit: 'kg',
-      default_unit_cost: '5.00',
+      default_unit_cost: '60.00',
       shelf_life_days: '2',
       storage_condition: 'Refrigerated',
       is_active: true
@@ -135,24 +139,83 @@ export const Inventory: React.FC = () => {
     }
   };
 
+  const shortShelfLifeCount = items.filter(i => i.shelf_life_days <= 2).length;
+  const refrigCount = items.filter(i => i.storage_condition === 'Refrigerated').length;
+
   return (
     <div className="space-y-5">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+        <span className="text-cyan-700 font-bold">{orgName}</span>
+        <span>•</span>
+        <span>Inventory & Raw Ingredient Stock</span>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Food Inventory Catalog</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Manage preparation menu items, categories, storage conditions, and unit costs
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Food Inventory Catalog</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Manage preparation menu items, categories, storage conditions, and baseline ingredient costs.
           </p>
         </div>
 
         <button
           onClick={handleOpenAdd}
-          className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition"
+          className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-white bg-[#1E6BFF] hover:bg-blue-600 rounded-xl shadow-md shadow-blue-500/25 transition"
         >
           <Plus className="w-4 h-4" />
           <span>Add Food Item</span>
         </button>
+      </div>
+
+      {/* Intelligence Banner */}
+      <div className="bg-[#0D1C38] border border-slate-800/90 rounded-2xl p-5 text-white shadow-xl">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-xl bg-cyan-950 text-cyan-400 border border-cyan-700/60 flex items-center justify-center font-bold text-xs">
+              <Utensils className="w-4 h-4 text-cyan-400" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-white leading-none">
+                Stock Catalog & Cold Storage Status
+              </h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Active menu tracking and perishable shelf-life distribution
+              </p>
+            </div>
+          </div>
+          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#070D1F] text-cyan-300 border border-slate-700">
+            {items.length} Tracked Catalog Dishes
+          </span>
+        </div>
+
+        {/* 4 Summary Insets */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5 mt-4">
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Catalog Items</span>
+            <p className="text-xl font-extrabold text-white">{items.length}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Dishes & preparations</p>
+          </div>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Refrigerated</span>
+            <p className="text-xl font-extrabold text-cyan-400">{refrigCount}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Cold line items</p>
+          </div>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Short Shelf-Life</span>
+            <p className="text-xl font-extrabold text-amber-400">{shortShelfLifeCount}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">≤ 2 days limit</p>
+          </div>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Stock Status</span>
+            <p className="text-xl font-extrabold text-emerald-400">Audit OK</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">No critical shortages</p>
+          </div>
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -209,7 +272,7 @@ export const Inventory: React.FC = () => {
                 <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg">
                   <div>
                     <span className="text-[10px] text-slate-400 block">Unit Cost</span>
-                    <strong className="text-slate-900">${item.default_unit_cost}</strong> / {item.unit}
+                    <strong className="text-slate-900">₹{item.default_unit_cost}</strong> / {item.unit}
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-400 block">Shelf Life</span>
@@ -311,7 +374,7 @@ export const Inventory: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">Default Unit Cost ($)</label>
+                  <label className="block text-xs font-semibold text-slate-700">Default Unit Cost (₹)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -357,7 +420,7 @@ export const Inventory: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-1.5 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition disabled:opacity-50"
+                  className="px-5 py-2 text-xs font-bold text-white bg-[#1E6BFF] hover:bg-blue-600 rounded-xl shadow-md shadow-blue-500/25 transition disabled:opacity-50"
                 >
                   {submitting ? 'Saving...' : editingId ? 'Update Item' : 'Add Item'}
                 </button>

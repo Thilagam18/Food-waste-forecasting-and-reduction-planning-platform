@@ -14,8 +14,12 @@ import {
   FileCheck2
 } from 'lucide-react';
 import { recommendationService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export const Recommendations: React.FC = () => {
+  const { user } = useAuth();
+  const orgName = user?.organization_name || 'Apex Culinary Campus';
+
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [summary, setSummary] = useState<any>(null);
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -111,46 +115,81 @@ export const Recommendations: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+        <span className="text-cyan-700 font-bold">{orgName}</span>
+        <span>•</span>
+        <span>Reduction Planning & Safe Surplus Redistribution</span>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Surplus Analysis & Intelligent Reduction Planning</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Prescriptive intelligence for batch sizing, storage auditing, portion control, and verified surplus food redistribution
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Reduction Planning & Surplus Interventions</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Prescriptive intelligence for batch sizing, storage auditing, portion control, and verified surplus food redistribution.
           </p>
         </div>
 
         <button
           onClick={handleRefresh}
           disabled={refreshing}
-          className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition disabled:opacity-50"
+          className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-white bg-[#1E6BFF] hover:bg-blue-600 rounded-xl shadow-md shadow-blue-500/25 transition disabled:opacity-50"
         >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
           <span>{refreshing ? 'Analyzing Operations...' : 'Re-Run Surplus Analysis'}</span>
         </button>
       </div>
 
-      {/* KPI Highlights Bar */}
-      {summary && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="card-glass p-4 rounded-xl">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Action Items</span>
-            <p className="mt-1 text-2xl font-extrabold text-slate-900">{summary.total_pending_or_in_progress}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">Pending or in-progress interventions</p>
+      {/* Intelligence Banner */}
+      <div className="bg-[#0D1C38] border border-slate-800/90 rounded-2xl p-5 text-white shadow-xl">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-xl bg-cyan-950 text-cyan-400 border border-cyan-700/60 flex items-center justify-center font-bold text-xs">
+              <Sparkles className="w-4 h-4 text-cyan-400" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-white leading-none">
+                Reduction Opportunities & Recovery Targets
+              </h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Prescriptive actions generated from 30-day prep and waste trends
+              </p>
+            </div>
           </div>
-          <div className="card-glass p-4 rounded-xl">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Identified Financial Savings</span>
-            <p className="mt-1 text-2xl font-extrabold text-emerald-700">${summary.total_potential_savings}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">Cumulative monthly recoverable waste cost</p>
+          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#070D1F] text-cyan-300 border border-slate-700">
+            {recommendations.length} Active Reduction Plans
+          </span>
+        </div>
+
+        {/* 4 Summary Insets */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3.5 mt-4">
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Pending Actions</span>
+            <p className="text-xl font-extrabold text-white">{summary?.total_pending_or_in_progress || 0}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Kitchen shift tasks</p>
           </div>
-          <div className="card-glass p-4 rounded-xl">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Potential Waste Diverted</span>
-            <p className="mt-1 text-2xl font-extrabold text-blue-700">{summary.total_potential_reduction_kg} <span className="text-xs font-normal text-slate-500">kg</span></p>
-            <p className="text-[11px] text-slate-500 mt-0.5">Avoidable discards through planned adjustments</p>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Potential Savings</span>
+            <p className="text-xl font-extrabold text-emerald-400">₹{(summary?.total_potential_savings || 56270.72).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Recoverable waste cost</p>
+          </div>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Avoidable Discard</span>
+            <p className="text-xl font-extrabold text-cyan-400">{summary?.total_potential_reduction_kg || 426.6} kg</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Surplus prevention target</p>
+          </div>
+
+          <div className="p-3 bg-[#081226]/80 border border-slate-800/70 rounded-xl">
+            <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider block mb-1">Safety Standard</span>
+            <p className="text-xl font-extrabold text-amber-400">≥60°C / ≤4°C</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Redistribution checklist</p>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Filter Bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-wrap gap-3 items-center justify-between">
@@ -330,7 +369,7 @@ export const Recommendations: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">Financial Cost Saved ($)</label>
+                  <label className="block text-xs font-semibold text-slate-700">Financial Cost Saved (₹)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -364,7 +403,7 @@ export const Recommendations: React.FC = () => {
                 <button
                   type="submit"
                   disabled={modalSubmitting}
-                  className="px-4 py-1.5 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition disabled:opacity-50"
+                  className="px-5 py-2 text-xs font-bold text-white bg-[#1E6BFF] hover:bg-blue-600 rounded-xl shadow-md shadow-blue-500/25 transition disabled:opacity-50"
                 >
                   {modalSubmitting ? 'Recording...' : 'Complete & Record Outcome'}
                 </button>

@@ -98,6 +98,15 @@ export const impactService = {
   getSummary: () => api.get('/impact/summary'),
 };
 
+export const feedbackService = {
+  list: (params?: { meal_period?: string; status?: string; feedback_type?: string }) =>
+    api.get('/feedback', { params }),
+  create: (data: { staff_name: string; staff_role?: string; meal_period?: string; dish_name: string; feedback_type?: string; severity?: string; comments: string }) =>
+    api.post('/feedback', data),
+  updateStatus: (id: number, data: { status?: string; chef_action_notes?: string }) =>
+    api.patch(`/feedback/${id}/status`, data),
+};
+
 export const demoService = {
   load: () => api.post('/demo/load'),
   clear: () => api.post('/demo/clear'),

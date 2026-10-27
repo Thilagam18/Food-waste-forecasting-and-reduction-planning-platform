@@ -6,11 +6,13 @@ import { LandingPage } from './pages/LandingPage';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
+import { PrepPlanner } from './pages/PrepPlanner';
 import { DailyLog } from './pages/DailyLog';
 import { Inventory } from './pages/Inventory';
 import { DemandForecasting } from './pages/DemandForecasting';
 import { Recommendations } from './pages/Recommendations';
 import { Alerts } from './pages/Alerts';
+import { Feedback } from './pages/Feedback';
 import { Impact } from './pages/Impact';
 import { Reports } from './pages/Reports';
 
@@ -20,7 +22,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-slate-50">
-        <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -49,11 +51,13 @@ export const App: React.FC = () => {
         }
       >
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/planner" element={<PrepPlanner />} />
         <Route path="/logs" element={<DailyLog />} />
         <Route path="/inventory" element={<Inventory />} />
         <Route path="/forecasting" element={<DemandForecasting />} />
         <Route path="/recommendations" element={<Recommendations />} />
         <Route path="/alerts" element={<Alerts />} />
+        <Route path="/feedback" element={<Feedback />} />
         <Route path="/impact" element={<Impact />} />
         <Route path="/reports" element={<Reports />} />
       </Route>

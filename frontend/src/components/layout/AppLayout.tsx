@@ -69,7 +69,7 @@ export const AppLayout: React.FC = () => {
 
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/logs', label: 'Prep Planner & Actuals', icon: CalendarClock },
+    { to: '/planner', label: 'Prep Planner & Actuals', icon: CalendarClock },
     { to: '/logs', label: 'Waste Data Logs', icon: ClipboardList },
     { to: '/forecasting', label: 'Demand Forecasting', icon: TrendingUp },
     { to: '/alerts', label: 'Waste Risk & Causes', icon: AlertTriangle },
