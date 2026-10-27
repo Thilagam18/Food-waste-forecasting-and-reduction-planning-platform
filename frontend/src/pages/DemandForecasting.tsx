@@ -25,6 +25,7 @@ import {
 } from 'recharts';
 import { forecastingService, foodItemService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { getFoodItemImage } from '../utils/foodImages';
 
 export const DemandForecasting: React.FC = () => {
   const { user } = useAuth();
@@ -229,31 +230,67 @@ export const DemandForecasting: React.FC = () => {
         </div>
       )}
 
-      {/* Forecast Chart */}
+      {/* Dual Forecasting Visual Graphs */}
       {forecasts.length > 0 && (
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
-          <h3 className="text-base font-bold text-slate-900 mb-1">Forecast Trajectory & Prep Recommendation</h3>
-          <p className="text-xs text-slate-500 mb-4">Predicted demand vs recommended batch preparation with confidence boundaries</p>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={forecasts} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="target_date" tick={{ fontSize: 11 }} tickLine={false} />
-                <YAxis tick={{ fontSize: 11 }} tickLine={false} />
-                <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }} />
-                <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                <Line type="monotone" dataKey="predicted_demand" stroke="#3b82f6" strokeWidth={2.5} name="Predicted Demand" />
-                <Line type="monotone" dataKey="recommended_prep" stroke="#10b981" strokeWidth={2.5} strokeDasharray="5 5" name="Recommended Prep" />
-                <Line type="monotone" dataKey="upper_bound" stroke="#94a3b8" strokeWidth={1} strokeDasharray="3 3" name="Upper Uncertainty (80%)" />
-                <Line type="monotone" dataKey="lower_bound" stroke="#94a3b8" strokeWidth={1} strokeDasharray="3 3" name="Lower Uncertainty (80%)" />
-              </LineChart>
-            </ResponsiveContainer>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* Chart 1: Trajectory & Confidence Bands */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900">Forecast Trajectory & Prep Recommendation</h3>
+                <p className="text-xs text-slate-400">Predicted consumption curve with 80% confidence interval</p>
+              </div>
+              <span className="px-2.5 py-1 text-[10px] font-bold bg-blue-50 text-blue-700 rounded-lg border border-blue-200">
+                Continuous Curve
+              </span>
+            </div>
+            <div className="h-64 mt-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={forecasts} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="target_date" tick={{ fontSize: 11 }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11 }} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '11px' }} />
+                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                  <Line type="monotone" dataKey="predicted_demand" stroke="#1E6BFF" strokeWidth={2.5} name="Predicted Demand" />
+                  <Line type="monotone" dataKey="recommended_prep" stroke="#10b981" strokeWidth={2.5} strokeDasharray="4 4" name="Recommended Prep" />
+                  <Line type="monotone" dataKey="upper_bound" stroke="#94a3b8" strokeWidth={1} strokeDasharray="2 2" name="Upper (80%)" />
+                  <Line type="monotone" dataKey="lower_bound" stroke="#94a3b8" strokeWidth={1} strokeDasharray="2 2" name="Lower (80%)" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Chart 2: Demand vs Planned Prep BarChart Comparison */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900">Demand vs Safe Prep Comparison</h3>
+                <p className="text-xs text-slate-400">Side-by-side volume distribution per scheduled service date</p>
+              </div>
+              <span className="px-2.5 py-1 text-[10px] font-bold bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200">
+                Safe Margin Check
+              </span>
+            </div>
+            <div className="h-64 mt-3">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={forecasts} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="target_date" tick={{ fontSize: 11 }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11 }} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '11px' }} />
+                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                  <Bar dataKey="predicted_demand" fill="#1E6BFF" radius={[4, 4, 0, 0]} name="Predicted Demand (kg)" />
+                  <Bar dataKey="recommended_prep" fill="#10B981" radius={[4, 4, 0, 0]} name="Recommended Prep (kg)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Forecast Data Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+      {/* Forecast Data Table with Food Photography */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         <div className="p-4 border-b border-slate-200 flex items-center justify-between">
           <h3 className="font-bold text-sm text-slate-900">Future Service Forecast Schedule</h3>
           <span className="text-xs text-slate-500">{forecasts.length} scheduled predictions</span>
@@ -261,7 +298,7 @@ export const DemandForecasting: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider">
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[10px]">
                 <th className="py-3 px-4">Target Date</th>
                 <th className="py-3 px-4">Food Item</th>
                 <th className="py-3 px-4">Meal Period</th>
@@ -284,37 +321,52 @@ export const DemandForecasting: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                forecasts.map((f) => (
-                  <tr key={f.id} className="hover:bg-slate-50/70 transition">
-                    <td className="py-3 px-4 font-semibold text-slate-900">{f.target_date}</td>
-                    <td className="py-3 px-4">
-                      <span className="font-semibold text-slate-900">{f.food_item_name}</span>
-                      <span className="block text-[10px] text-slate-500">{f.category}</span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
-                        {f.meal_period}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right font-bold text-blue-700">
-                      {f.predicted_demand} <span className="text-[10px] font-normal text-slate-500">{f.unit}</span>
-                    </td>
-                    <td className="py-3 px-4 text-right font-bold text-emerald-800">
-                      {f.recommended_prep} <span className="text-[10px] font-normal text-slate-500">{f.unit}</span>
-                    </td>
-                    <td className="py-3 px-4 text-right font-medium text-amber-700">
-                      {f.expected_surplus} <span className="text-[10px] font-normal text-slate-500">{f.unit}</span>
-                    </td>
-                    <td className="py-3 px-4 text-center text-slate-500">
-                      [{f.lower_bound} - {f.upper_bound}] {f.unit}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-800">
-                        {f.model_type}
-                      </span>
-                    </td>
-                  </tr>
-                ))
+                forecasts.map((f) => {
+                  const dishImg = getFoodItemImage(f.food_item_name, f.category);
+                  return (
+                    <tr key={f.id} className="hover:bg-slate-50/70 transition">
+                      <td className="py-3 px-4 font-semibold text-slate-900">{f.target_date}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2.5">
+                          <img
+                            src={dishImg}
+                            alt={f.food_item_name}
+                            className="w-10 h-10 rounded-lg object-cover border border-slate-200 flex-shrink-0"
+                            onError={(e: any) => {
+                              e.target.src = '/images/steamed_basmati_rice.jpg';
+                            }}
+                          />
+                          <div>
+                            <span className="font-bold text-slate-900 block leading-tight">{f.food_item_name}</span>
+                            <span className="text-[10px] text-slate-500">{f.category}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
+                          {f.meal_period}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-bold text-blue-700">
+                        {f.predicted_demand} <span className="text-[10px] font-normal text-slate-500">{f.unit}</span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-bold text-emerald-800">
+                        {f.recommended_prep} <span className="text-[10px] font-normal text-slate-500">{f.unit}</span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-medium text-amber-700">
+                        {f.expected_surplus} <span className="text-[10px] font-normal text-slate-500">{f.unit}</span>
+                      </td>
+                      <td className="py-3 px-4 text-center text-slate-500 font-mono text-[11px]">
+                        [{f.lower_bound} - {f.upper_bound}] {f.unit}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-800 border border-blue-200">
+                          {f.model_type}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

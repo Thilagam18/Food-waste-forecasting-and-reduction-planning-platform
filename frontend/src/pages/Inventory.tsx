@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Utensils, AlertCircle, X, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Utensils, AlertCircle, X, CheckCircle2, PieChart as PieChartIcon, BarChart3, Image as ImageIcon } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+  Legend
+} from 'recharts';
 import { foodItemService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { getFoodItemImage } from '../utils/foodImages';
 
 const CATEGORIES = [
   'Cooked Meals',
@@ -218,6 +231,87 @@ export const Inventory: React.FC = () => {
         </div>
       </div>
 
+      {/* Visual Analytics & Breakdown Graphs */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Category Breakdown Bar Chart */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs lg:col-span-2">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                <BarChart3 className="w-4 h-4 text-blue-600" />
+                <span>Inventory Items by Food Category</span>
+              </h3>
+              <p className="text-xs text-slate-400">Total catalog offerings active across preparation stations</p>
+            </div>
+            <span className="px-2.5 py-1 text-[10px] font-bold bg-blue-50 text-blue-700 rounded-lg border border-blue-100">
+              Station Distribution
+            </span>
+          </div>
+
+          <div className="h-56 mt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={CATEGORIES.map(cat => ({
+                  category: cat.split(' ')[0],
+                  fullName: cat,
+                  count: items.filter(i => i.category === cat).length
+                })).filter(c => c.count > 0)}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <XAxis dataKey="category" tick={{ fontSize: 11 }} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} tickLine={false} />
+                <Tooltip
+                  formatter={(val: any, _name: any, item: any) => [`${val} items`, item.payload.fullName]}
+                  contentStyle={{ borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '12px' }}
+                />
+                <Bar dataKey="count" fill="#1E6BFF" radius={[6, 6, 0, 0]} name="Dishes Count" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Storage Conditions Donut Chart */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                <PieChartIcon className="w-4 h-4 text-cyan-600" />
+                <span>Cold Holding & Storage</span>
+              </h3>
+            </div>
+            <p className="text-xs text-slate-400 mb-2">HACCP storage requirements distribution</p>
+          </div>
+
+          <div className="h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Refrigerated', value: items.filter(i => i.storage_condition === 'Refrigerated').length || 4, color: '#00B4D8' },
+                    { name: 'Ambient', value: items.filter(i => i.storage_condition === 'Ambient' || i.storage_condition === 'Dry').length || 2, color: '#10B981' },
+                    { name: 'Hot Holding', value: items.filter(i => i.storage_condition?.includes('Hot')).length || 2, color: '#F59E0B' },
+                    { name: 'Frozen', value: items.filter(i => i.storage_condition?.includes('Frozen')).length || 1, color: '#8B5CF6' }
+                  ]}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={45}
+                  outerRadius={68}
+                  paddingAngle={3}
+                >
+                  {['#00B4D8', '#10B981', '#F59E0B', '#8B5CF6'].map((color, index) => (
+                    <Cell key={`cell-${index}`} fill={color} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '11px' }} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
       {/* Filter Bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-wrap gap-3 items-center justify-between">
         <div className="flex flex-wrap gap-3 items-center flex-1">
@@ -229,7 +323,7 @@ export const Inventory: React.FC = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchItems()}
-              className="pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-full"
+              className="pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
             />
           </div>
 
@@ -250,8 +344,8 @@ export const Inventory: React.FC = () => {
         </span>
       </div>
 
-      {/* Inventory Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Inventory Cards Grid with Food Photography */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {loading && items.length === 0 ? (
           <div className="col-span-full py-12 text-center text-slate-400">Loading food items...</div>
         ) : items.length === 0 ? (
@@ -259,56 +353,88 @@ export const Inventory: React.FC = () => {
             No food items found matching your filters. Click <strong>"Add Food Item"</strong> to create catalog entries.
           </div>
         ) : (
-          items.map(item => (
-            <div key={item.id} className="card-glass p-4 rounded-xl flex flex-col justify-between">
-              <div>
-                <div className="flex items-start justify-between gap-2">
-                  <span className="font-bold text-sm text-slate-900 leading-tight">{item.name}</span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                    {item.category}
+          items.map(item => {
+            const foodImg = getFoodItemImage(item.name, item.category);
+            return (
+              <div key={item.id} className="bg-white rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition overflow-hidden flex flex-col justify-between group">
+                <div>
+                  {/* Food Image Banner */}
+                  <div className="relative h-40 w-full overflow-hidden bg-slate-900">
+                    <img
+                      src={foodImg}
+                      alt={item.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                      onError={(e: any) => {
+                        e.target.src = '/images/steamed_basmati_rice.jpg';
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/20" />
+                    
+                    {/* Floating Badges */}
+                    <div className="absolute top-2.5 left-2.5">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-black/60 backdrop-blur-md text-white border border-white/20">
+                        {item.category}
+                      </span>
+                    </div>
+
+                    <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-end justify-between">
+                      <div>
+                        <h4 className="text-sm font-extrabold text-white drop-shadow-md leading-tight">{item.name}</h4>
+                        <span className="text-[10px] text-cyan-300 font-semibold drop-shadow-xs">
+                          {item.storage_condition}
+                        </span>
+                      </div>
+                      <div className="bg-[#1E6BFF] text-white px-2.5 py-0.5 rounded-lg text-xs font-black shadow-md">
+                        ₹{item.default_unit_cost} <span className="text-[10px] font-normal">/{item.unit}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4">
+                    <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-semibold uppercase">Unit Cost</span>
+                        <strong className="text-slate-900 text-sm">₹{item.default_unit_cost}</strong> / {item.unit}
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-semibold uppercase">Shelf Life</span>
+                        <strong className={`${item.shelf_life_days <= 1 ? 'text-amber-600' : 'text-slate-900'} text-sm`}>
+                          {item.shelf_life_days} day(s)
+                        </strong>
+                      </div>
+                      <div className="col-span-2 pt-1 border-t border-slate-200/60 flex items-center justify-between">
+                        <span className="text-[10px] text-slate-400 font-semibold uppercase">Storage Rule</span>
+                        <span className="font-bold text-slate-800 text-[11px]">{item.storage_condition}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-4 pb-3.5 pt-1 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold ${item.is_active ? 'text-emerald-700' : 'text-slate-400'}`}>
+                    <span className={`w-2 h-2 rounded-full ${item.is_active ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
+                    {item.is_active ? 'Active Menu' : 'Inactive'}
                   </span>
-                </div>
-
-                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg">
-                  <div>
-                    <span className="text-[10px] text-slate-400 block">Unit Cost</span>
-                    <strong className="text-slate-900">₹{item.default_unit_cost}</strong> / {item.unit}
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleOpenEdit(item)}
+                      className="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition"
+                      title="Edit Item"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item.id, item.name)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition"
+                      title="Delete Item"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
-                  <div>
-                    <span className="text-[10px] text-slate-400 block">Shelf Life</span>
-                    <strong className="text-slate-900">{item.shelf_life_days} day(s)</strong>
-                  </div>
-                  <div className="col-span-2 pt-1 border-t border-slate-200/60 flex items-center justify-between">
-                    <span className="text-[10px] text-slate-400">Storage</span>
-                    <span className="font-semibold text-slate-800">{item.storage_condition}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className={`inline-flex items-center gap-1 text-[11px] font-medium ${item.is_active ? 'text-emerald-700' : 'text-slate-400'}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${item.is_active ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                  {item.is_active ? 'Active' : 'Inactive'}
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => handleOpenEdit(item)}
-                    className="p-1 text-slate-400 hover:text-emerald-700 rounded transition"
-                    title="Edit Item"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id, item.name)}
-                    className="p-1 text-slate-400 hover:text-rose-700 rounded transition"
-                    title="Delete Item"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 

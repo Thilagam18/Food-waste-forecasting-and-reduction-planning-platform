@@ -13,10 +13,21 @@ import {
   ChevronRight,
   RefreshCw,
   Flame,
-  Clock
+  Clock,
+  BarChart2
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Cell
+} from 'recharts';
 import { foodItemService, forecastingService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { getFoodItemImage } from '../utils/foodImages';
 
 export const PrepPlanner: React.FC = () => {
   const { user } = useAuth();
@@ -258,6 +269,103 @@ export const PrepPlanner: React.FC = () => {
         </div>
       </div>
 
+      {/* Visual Graphical Workload & Batch Progress */}
+      {prepPlans.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs lg:col-span-2">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <BarChart2 className="w-4 h-4 text-blue-600" />
+                  <span>Station Batch Workload (kg)</span>
+                </h3>
+                <p className="text-xs text-slate-400">Total volume scheduled across physical cook lines</p>
+              </div>
+              <span className="px-2.5 py-1 text-[10px] font-bold bg-cyan-50 text-cyan-800 rounded-lg border border-cyan-200">
+                Live Kitchen Stations
+              </span>
+            </div>
+
+            <div className="h-44 mt-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={['Hot Cooking Line', 'Steamers & Rice Kettles', 'Curry & Sambar Range', 'Bakery & Chilled Counter'].map(st => {
+                    const stPlans = prepPlans.filter(p => p.station === st);
+                    const totalKg = stPlans.reduce((sum, p) => sum + p.plannedKg, 0);
+                    return {
+                      station: st.split(' ')[0],
+                      fullStation: st,
+                      volume: Number(totalKg.toFixed(1))
+                    };
+                  })}
+                  margin={{ top: 5, right: 10, left: -20, bottom: 0 }}
+                >
+                  <XAxis dataKey="station" tick={{ fontSize: 11 }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11 }} tickLine={false} />
+                  <Tooltip
+                    formatter={(val: any, _name: any, item: any) => [`${val} kg`, item.payload.fullStation]}
+                    contentStyle={{ borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '11px' }}
+                  />
+                  <Bar dataKey="volume" fill="#1E6BFF" radius={[6, 6, 0, 0]} name="Planned (kg)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-900">Shift Batch Readiness</h3>
+              <p className="text-xs text-slate-400 mb-3">Live line status monitoring</p>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between text-xs font-bold mb-1">
+                  <span className="text-slate-600">Ready for Service</span>
+                  <span className="text-emerald-600">{prepPlans.filter(p => p.status === 'Ready for Service').length} of {prepPlans.length}</span>
+                </div>
+                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-emerald-500 rounded-full"
+                    style={{ width: `${(prepPlans.filter(p => p.status === 'Ready for Service').length / (prepPlans.length || 1)) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-bold mb-1">
+                  <span className="text-slate-600">Actively Cooking</span>
+                  <span className="text-amber-600">{prepPlans.filter(p => p.status === 'Cooking').length} of {prepPlans.length}</span>
+                </div>
+                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-amber-500 rounded-full"
+                    style={{ width: `${(prepPlans.filter(p => p.status === 'Cooking').length / (prepPlans.length || 1)) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-bold mb-1">
+                  <span className="text-slate-600">Queued / Planned</span>
+                  <span className="text-blue-600">{prepPlans.filter(p => p.status === 'Planned').length} of {prepPlans.length}</span>
+                </div>
+                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-500 rounded-full"
+                    style={{ width: `${(prepPlans.filter(p => p.status === 'Planned').length / (prepPlans.length || 1)) * 100}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-400 mt-2">
+              All batches scheduled with +{safetyBuffer}% portion margin.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Production Station Batch Table */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
@@ -284,60 +392,75 @@ export const PrepPlanner: React.FC = () => {
                   <td colSpan={8} className="py-12 text-center text-slate-400">No menu items found. Add items in Inventory to generate plans.</td>
                 </tr>
               ) : (
-                prepPlans.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/70 transition">
-                    <td className="py-3.5 px-4 font-bold text-slate-900">
-                      <div>{item.name}</div>
-                      <span className="text-[10px] text-slate-400 font-normal">{item.category}</span>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                        {item.station}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right text-slate-600">
-                      {item.baseDemand} {item.unit}
-                    </td>
-                    <td className="py-3.5 px-4 text-right text-emerald-600 font-bold">
-                      +{item.bufferKg} {item.unit}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-black text-blue-600 text-sm">
-                      {item.plannedKg} {item.unit}
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="inline-flex items-center justify-end gap-1">
-                        <input
-                          type="number"
-                          step="0.5"
-                          value={item.actualKg}
-                          onChange={(e) => handleUpdateActual(item.id, e.target.value)}
-                          className="w-16 px-2 py-1 text-right text-xs font-bold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"
-                        />
-                        <span className="text-slate-400 text-[11px]">{item.unit}</span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <select
-                        value={item.status}
-                        onChange={(e) => handleUpdateStatus(item.id, e.target.value)}
-                        className={`text-[11px] font-bold py-1 px-2.5 rounded-full border cursor-pointer focus:outline-none ${
-                          item.status === 'Ready for Service'
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                            : item.status === 'Cooking'
-                            ? 'bg-amber-50 text-amber-700 border-amber-300'
-                            : 'bg-blue-50 text-blue-700 border-blue-300'
-                        }`}
-                      >
-                        <option value="Planned">Planned</option>
-                        <option value="Cooking">Cooking</option>
-                        <option value="Ready for Service">Ready for Service</option>
-                      </select>
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-bold text-slate-900">
-                      ₹{(item.plannedKg * item.costPerUnit).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                    </td>
-                  </tr>
-                ))
+                prepPlans.map((item) => {
+                  const dishImg = getFoodItemImage(item.name, item.category);
+                  return (
+                    <tr key={item.id} className="hover:bg-slate-50/70 transition">
+                      <td className="py-3 px-4 font-bold text-slate-900">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={dishImg}
+                            alt={item.name}
+                            className="w-11 h-11 rounded-xl object-cover border border-slate-200 shadow-xs flex-shrink-0"
+                            onError={(e: any) => {
+                              e.target.src = '/images/steamed_basmati_rice.jpg';
+                            }}
+                          />
+                          <div>
+                            <div className="font-extrabold text-slate-900 leading-tight">{item.name}</div>
+                            <span className="text-[10px] text-slate-400 font-medium">{item.category}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                          {item.station}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right text-slate-600">
+                        {item.baseDemand} {item.unit}
+                      </td>
+                      <td className="py-3 px-4 text-right text-emerald-600 font-bold">
+                        +{item.bufferKg} {item.unit}
+                      </td>
+                      <td className="py-3 px-4 text-right font-black text-blue-600 text-sm">
+                        {item.plannedKg} {item.unit}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="inline-flex items-center justify-end gap-1">
+                          <input
+                            type="number"
+                            step="0.5"
+                            value={item.actualKg}
+                            onChange={(e) => handleUpdateActual(item.id, e.target.value)}
+                            className="w-16 px-2 py-1 text-right text-xs font-bold text-slate-900 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500"
+                          />
+                          <span className="text-slate-400 text-[11px]">{item.unit}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <select
+                          value={item.status}
+                          onChange={(e) => handleUpdateStatus(item.id, e.target.value)}
+                          className={`text-[11px] font-bold py-1 px-2.5 rounded-full border cursor-pointer focus:outline-none ${
+                            item.status === 'Ready for Service'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                              : item.status === 'Cooking'
+                              ? 'bg-amber-50 text-amber-700 border-amber-300'
+                              : 'bg-blue-50 text-blue-700 border-blue-300'
+                          }`}
+                        >
+                          <option value="Planned">Planned</option>
+                          <option value="Cooking">Cooking</option>
+                          <option value="Ready for Service">Ready for Service</option>
+                        </select>
+                      </td>
+                      <td className="py-3 px-4 text-right font-bold text-slate-900">
+                        ₹{(item.plannedKg * item.costPerUnit).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
             <tfoot className="bg-slate-50/90 font-black text-slate-900 border-t border-slate-200">

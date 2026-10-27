@@ -12,6 +12,18 @@ import {
 } from 'lucide-react';
 import { reportService, foodItemService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+  Legend
+} from 'recharts';
 
 export const Reports: React.FC = () => {
   const { user } = useAuth();
@@ -232,14 +244,80 @@ export const Reports: React.FC = () => {
             <p className="text-[11px] text-slate-500 mt-0.5">Discarded weight</p>
           </div>
           <div className="card-glass p-4 rounded-xl">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Waste Loss ($)</span>
-            <p className="mt-1 text-2xl font-extrabold text-rose-700">${totals.total_cost}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">Procurement value discarded</p>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Waste Loss (₹)</span>
+            <p className="mt-1 text-2xl font-extrabold text-rose-700">₹{totals.total_cost}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Procurement value discarded</p>
           </div>
           <div className="card-glass p-4 rounded-xl">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Waste Percentage</span>
             <p className="mt-1 text-2xl font-extrabold text-slate-900">{totals.waste_percentage}%</p>
             <p className="text-[11px] text-slate-500 mt-0.5">Of prepared mass</p>
+          </div>
+        </div>
+      )}
+
+      {/* Visual Graphical Analytics */}
+      {categories.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Category Discard vs Consumed Bar Chart */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs lg:col-span-2">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900">Food Discards by Category (kg)</h3>
+                <p className="text-xs text-slate-400">Preparation waste vs consumed mass across catalog categories</p>
+              </div>
+              <span className="px-2.5 py-1 text-[10px] font-bold bg-rose-50 text-rose-700 rounded-lg border border-rose-200">
+                Loss Breakdown
+              </span>
+            </div>
+
+            <div className="h-56 mt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={categories} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="category" tick={{ fontSize: 11 }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11 }} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '11px' }} />
+                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                  <Bar dataKey="consumed" fill="#00B4D8" radius={[4, 4, 0, 0]} name="Consumed (kg)" />
+                  <Bar dataKey="waste" fill="#E11D48" radius={[4, 4, 0, 0]} name="Waste Discard (kg)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Meal Period Waste Contribution Donut */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-900">Waste by Meal Period</h3>
+              <p className="text-xs text-slate-400 mb-2">Shift proportion of total discard kg</p>
+            </div>
+
+            <div className="h-52">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={mealPeriods.map((m: any, idx: number) => ({
+                      name: m.meal_period,
+                      value: m.waste,
+                      color: ['#1E6BFF', '#00B4D8', '#F59E0B', '#10B981', '#8B5CF6'][idx % 5]
+                    }))}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={45}
+                    outerRadius={68}
+                    paddingAngle={3}
+                  >
+                    {mealPeriods.map((_: any, idx: number) => (
+                      <Cell key={idx} fill={['#1E6BFF', '#00B4D8', '#F59E0B', '#10B981', '#8B5CF6'][idx % 5]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '11px' }} />
+                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       )}
