@@ -401,8 +401,9 @@ export const Feedback: React.FC = () => {
                   <span>Severity: <strong className={item.severity === 'High' ? 'text-rose-600' : 'text-slate-800'}>{item.severity}</strong></span>
                 </div>
               </div>
+            </div>
 
-              {/* Status Action Controls */}
+            {/* Status Action Controls */}
               <div className="flex md:flex-col items-center md:items-end justify-between gap-2 flex-shrink-0">
                 <span
                   className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
@@ -426,9 +427,10 @@ export const Feedback: React.FC = () => {
                 )}
               </div>
             </div>
-          ))
-        )}
-      </div>
+          );
+        })
+      )}
+    </div>
 
       {/* Modal to log floor feedback */}
       {isModalOpen && (

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { foodLogService, foodItemService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { getFoodItemImage } from '../utils/foodImages';
 
 export const DailyLog: React.FC = () => {
   const { user } = useAuth();
@@ -413,8 +414,20 @@ export const DailyLog: React.FC = () => {
                   <tr key={log.id} className="hover:bg-slate-50/70 transition">
                     <td className="py-3 px-4 font-medium text-slate-900">{log.record_date}</td>
                     <td className="py-3 px-4">
-                      <span className="font-semibold text-slate-900">{log.food_item_name}</span>
-                      <span className="block text-[10px] text-slate-500">{log.category}</span>
+                      <div className="flex items-center gap-2.5">
+                        <img
+                          src={getFoodItemImage(log.food_item_name, log.category)}
+                          alt={log.food_item_name}
+                          className="w-10 h-10 rounded-lg object-cover border border-slate-200 flex-shrink-0"
+                          onError={(e: any) => {
+                            e.target.src = '/images/steamed_basmati_rice.jpg';
+                          }}
+                        />
+                        <div>
+                          <span className="font-semibold text-slate-900 block leading-tight">{log.food_item_name}</span>
+                          <span className="text-[10px] text-slate-500">{log.category}</span>
+                        </div>
+                      </div>
                     </td>
                     <td className="py-3 px-4">
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { recommendationService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { getFoodItemImage } from '../utils/foodImages';
 
 export const Recommendations: React.FC = () => {
   const { user } = useAuth();
@@ -247,8 +248,20 @@ export const Recommendations: React.FC = () => {
                   <span className="text-xs text-slate-400">Generated: {rec.date_generated}</span>
                 </div>
 
-                <h3 className="text-base font-bold text-slate-900 leading-snug">{rec.title}</h3>
-                <p className="text-xs text-slate-700 leading-relaxed font-medium">{rec.recommendation_text}</p>
+                <div className="flex items-start gap-3">
+                  <img
+                    src={getFoodItemImage(rec.title)}
+                    alt={rec.title}
+                    className="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-xs flex-shrink-0"
+                    onError={(e: any) => {
+                      e.target.src = '/images/steamed_basmati_rice.jpg';
+                    }}
+                  />
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 leading-snug">{rec.title}</h3>
+                    <p className="text-xs text-slate-700 leading-relaxed font-medium mt-1">{rec.recommendation_text}</p>
+                  </div>
+                </div>
 
                 {rec.category === 'Donation' && (
                   <div className="p-3 bg-amber-50 border border-amber-300 rounded-lg text-xs text-amber-900 flex items-start gap-2.5">
@@ -277,7 +290,7 @@ export const Recommendations: React.FC = () => {
               <div className="flex flex-col md:items-end justify-between self-stretch min-w-[200px] border-t md:border-t-0 md:border-l border-slate-200 pt-3 md:pt-0 md:pl-5 space-y-3">
                 <div className="text-left md:text-right">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Estimated Benefit</span>
-                  <span className="text-lg font-extrabold text-emerald-700">${rec.potential_savings_cost}</span>
+                  <span className="text-lg font-extrabold text-emerald-700">₹{rec.potential_savings_cost}</span>
                   <span className="block text-xs text-slate-600">{rec.potential_waste_reduction_kg} kg waste cut</span>
                 </div>
 
@@ -294,7 +307,7 @@ export const Recommendations: React.FC = () => {
                     {rec.status !== 'Completed' && (
                       <button
                         onClick={() => handleOpenInterveneModal(rec)}
-                        className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition"
+                        className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-[#1E6BFF] hover:bg-blue-600 rounded-lg shadow-sm transition"
                       >
                         <FileCheck2 className="w-3.5 h-3.5" />
                         <span>Log Outcome</span>
