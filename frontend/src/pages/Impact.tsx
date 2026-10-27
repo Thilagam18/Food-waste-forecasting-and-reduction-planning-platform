@@ -1,0 +1,211 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Leaf,
+  Droplets,
+  Utensils,
+  TrendingDown,
+  DollarSign,
+  ShieldCheck,
+  BookOpen,
+  Award,
+  CheckCircle2
+} from 'lucide-react';
+import { impactService } from '../services/api';
+
+export const Impact: React.FC = () => {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    fetchImpact();
+  }, []);
+
+  const fetchImpact = async () => {
+    setLoading(true);
+    try {
+      const res = await impactService.getSummary();
+      if (res.data?.success) setData(res.data);
+    } catch (err) {
+      console.error('Failed to load impact metrics');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const metrics = data?.metrics;
+  const methodology = data?.methodology;
+  const interventions = data?.interventions || [];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="pb-2 border-b border-slate-200">
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Sustainability & Financial Impact Analytics</h1>
+        <p className="text-sm text-slate-500 mt-0.5">
+          Verified financial savings, carbon emissions avoided, and freshwater resources conserved through recorded kitchen interventions
+        </p>
+      </div>
+
+      {/* 3 Core Environmental Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* GHG Card */}
+        <div className="card-glass p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-white border-emerald-200">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">GHG Emissions Prevented</span>
+            <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
+              <Leaf className="w-5 h-5" />
+            </div>
+          </div>
+          <p className="mt-3 text-3xl font-extrabold text-emerald-900">
+            {metrics?.co2_avoided_kg || 0} <span className="text-sm font-semibold text-emerald-700">kg CO2e</span>
+          </p>
+          <p className="mt-2 text-xs text-slate-600">
+            Calculated at <code className="font-semibold text-emerald-800">2.5 kg CO2e</code> per kg edible food saved from landfills.
+          </p>
+        </div>
+
+        {/* Water Card */}
+        <div className="card-glass p-5 rounded-2xl bg-gradient-to-br from-blue-50 to-white border-blue-200">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-blue-800 uppercase tracking-wider">Virtual Freshwater Saved</span>
+            <div className="w-9 h-9 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center">
+              <Droplets className="w-5 h-5" />
+            </div>
+          </div>
+          <p className="mt-3 text-3xl font-extrabold text-blue-900">
+            {(metrics?.water_saved_liters || 0).toLocaleString()} <span className="text-sm font-semibold text-blue-700">Liters</span>
+          </p>
+          <p className="mt-2 text-xs text-slate-600">
+            Conserved agricultural irrigation and food supply chain processing water footprint.
+          </p>
+        </div>
+
+        {/* Rescued Meals Card */}
+        <div className="card-glass p-5 rounded-2xl bg-gradient-to-br from-amber-50 to-white border-amber-200">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">Equivalent Meals Rescued</span>
+            <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+              <Utensils className="w-5 h-5" />
+            </div>
+          </div>
+          <p className="mt-3 text-3xl font-extrabold text-amber-900">
+            {(metrics?.meals_equivalent_saved || 0).toLocaleString()} <span className="text-sm font-semibold text-amber-700">Meals</span>
+          </p>
+          <p className="mt-2 text-xs text-slate-600">
+            Based on the standard nutritional benchmark of <code className="font-semibold text-amber-800">0.45 kg</code> per balanced meal.
+          </p>
+        </div>
+      </div>
+
+      {/* Financial Loss vs Intervention Recovery Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+          <div className="flex items-center gap-2 mb-2">
+            <DollarSign className="w-5 h-5 text-emerald-700" />
+            <h3 className="font-bold text-base text-slate-900">Financial Value Recovered</h3>
+          </div>
+          <p className="text-xs text-slate-500 mb-4">Cumulative operational savings achieved through recorded staff interventions</p>
+          <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+            <span className="text-xs font-semibold text-emerald-800 block">Total Intervention Cost Savings</span>
+            <span className="text-3xl font-extrabold text-emerald-900 mt-1 block">
+              ${(metrics?.cost_saved_interventions || 0).toLocaleString()}
+            </span>
+            <span className="text-xs text-emerald-700 mt-1 block">
+              Direct ingredient procurement expense avoided
+            </span>
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingDown className="w-5 h-5 text-rose-700" />
+            <h3 className="font-bold text-base text-slate-900">Preventable Discard Loss</h3>
+          </div>
+          <p className="text-xs text-slate-500 mb-4">Ingredient cost lost to discarded overproduction, spoilage, and plate waste</p>
+          <div className="p-4 bg-rose-50 rounded-xl border border-rose-200">
+            <span className="text-xs font-semibold text-rose-800 block">Total Waste Expense (Last 30 Days)</span>
+            <span className="text-3xl font-extrabold text-rose-900 mt-1 block">
+              ${(metrics?.total_waste_cost || 0).toLocaleString()}
+            </span>
+            <span className="text-xs text-rose-700 mt-1 block">
+              Target reduction: Implement pending recommendations to capture this value
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Verified Interventions Table */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Award className="w-4 h-4 text-emerald-700" />
+            <h3 className="font-bold text-sm text-slate-900">Verified Kitchen Interventions & Staff Logs</h3>
+          </div>
+          <span className="text-xs text-slate-500">{interventions.length} verified actions</span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider">
+                <th className="py-3 px-4">Date Recorded</th>
+                <th className="py-3 px-4">Action Implemented</th>
+                <th className="py-3 px-4">Related Recommendation</th>
+                <th className="py-3 px-4 text-right">Food Saved (kg)</th>
+                <th className="py-3 px-4 text-right">Cost Saved ($)</th>
+                <th className="py-3 px-4">Staff Notes</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {interventions.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-500">
+                    No intervention outcomes logged yet. Complete recommendations from the <strong>"Recommendations"</strong> module to record verified savings.
+                  </td>
+                </tr>
+              ) : (
+                interventions.map((item: any) => (
+                  <tr key={item.id} className="hover:bg-slate-50 transition">
+                    <td className="py-3 px-4 font-semibold text-slate-800">{item.recorded_date}</td>
+                    <td className="py-3 px-4 font-medium text-slate-900">{item.action_taken}</td>
+                    <td className="py-3 px-4 text-slate-600">{item.recommendation_title || 'Direct Kitchen Action'}</td>
+                    <td className="py-3 px-4 text-right font-bold text-emerald-700">+{item.food_saved_kg} kg</td>
+                    <td className="py-3 px-4 text-right font-bold text-emerald-700">+${item.cost_saved}</td>
+                    <td className="py-3 px-4 text-slate-500 italic">{item.staff_notes || '—'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Transparent Scientific Methodology Documentation */}
+      {methodology && (
+        <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs">
+          <div className="flex items-center gap-2 mb-3">
+            <BookOpen className="w-4 h-4 text-slate-700" />
+            <h4 className="font-bold text-slate-900 text-sm">Documented Environmental Methodology & Conversion Standards</h4>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-3 bg-white rounded-lg border border-slate-200">
+              <strong className="text-slate-800 block mb-1">GHG Emission Avoidance</strong>
+              <p className="text-slate-600 leading-relaxed">{methodology.co2e_factor.description}</p>
+              <span className="mt-2 block text-[10px] text-slate-400 font-mono">Source: {methodology.co2e_factor.source}</span>
+            </div>
+            <div className="p-3 bg-white rounded-lg border border-slate-200">
+              <strong className="text-slate-800 block mb-1">Water Footprint Conservation</strong>
+              <p className="text-slate-600 leading-relaxed">{methodology.water_factor.description}</p>
+              <span className="mt-2 block text-[10px] text-slate-400 font-mono">Source: {methodology.water_factor.source}</span>
+            </div>
+            <div className="p-3 bg-white rounded-lg border border-slate-200">
+              <strong className="text-slate-800 block mb-1">Nutritional Meal Equivalence</strong>
+              <p className="text-slate-600 leading-relaxed">{methodology.meal_factor.description}</p>
+              <span className="mt-2 block text-[10px] text-slate-400 font-mono">Source: {methodology.meal_factor.source}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
